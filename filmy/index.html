@@ -45,6 +45,10 @@ details ul{margin:6px 0 0;padding-left:18px;columns:2}
 .film a{font-size:13px;color:var(--accent)}
 .badge{display:inline-block;font-size:11px;border:1px solid var(--line);border-radius:6px;padding:0 6px;margin-right:6px;color:var(--accent)}
 progress{width:100%;height:8px}
+.acts{margin-top:6px}.acts button,.rate button{font-size:12px;padding:2px 8px;margin:2px 4px 0 0}.rate{font-size:12px;color:var(--muted);margin-top:4px}
+fieldset{border:1px solid var(--line);border-radius:8px;margin:8px 0;padding:6px 10px}legend{font-size:13px;color:var(--muted);padding:0 4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chip{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:999px;padding:2px 11px;font-size:13px;cursor:pointer}.chip:has(input:checked){background:var(--accent);color:var(--card);border-color:var(--accent)}.chip:has(input:focus-visible){outline:2px solid var(--c1);outline-offset:2px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}.tabs button[aria-selected=true]{background:var(--accent);color:var(--card);border-color:var(--accent)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 </style>
 </head>
@@ -54,7 +58,7 @@ progress{width:100%;height:8px}
 <p class="hint">Rekomendacje na podstawie moich ocen z IMDb: narzędzie szuka w TMDB filmów i seriali podobnych do tych, które oceniłem wysoko, i pomija te, które już znam.</p>
 
 <section class="box" aria-label="Profil ocen">
-<h2>1. Profil</h2>
+<h2>Profil</h2>
 <div id="profile"></div>
 <details><summary>Użyj własnych ocen zamiast moich</summary>
 <div class="row"><input type="file" id="file" accept=".csv,.txt,text/csv" aria-label="Plik CSV z ocenami"><button type="button" id="sample">Wczytaj przykład</button></div>
@@ -76,8 +80,37 @@ progress{width:100%;height:8px}
 <p class="note">Oceny przetwarzają się w przeglądarce. Do TMDB wysyłane są tylko identyfikatory IMDb albo tytuły wybranych źródeł.</p>
 </section>
 
+<nav class="tabs" role="tablist" aria-label="Sposób wyboru"><button type="button" role="tab" id="tab1" aria-selected="true" aria-controls="panel1" data-tab="1">Dobierz na dziś</button><button type="button" role="tab" id="tab2" aria-selected="false" aria-controls="panel2" data-tab="2">Według mojego gustu</button><button type="button" role="tab" id="tab3" aria-selected="false" aria-controls="panel3" data-tab="3">Psychologia</button></nav>
+<div id="panel1" role="tabpanel" aria-labelledby="tab1">
+<section class="box" aria-label="Dobierz na dziś">
+<h2>Dobierz coś na dziś</h2>
+<p class="note" style="margin:0 0 8px">Ustaw kryteria. Każde jest opcjonalne i można zaznaczyć jedno, kilka albo żadne. Wybiorę kilka tytułów z całej bazy TMDB, dopasowanych do mojego gustu, bez tych, które już widziałem. Kliknij ponownie, żeby wylosować inne.</p>
+<div class="row"><label for="dN">Ile propozycji</label><select id="dN"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option></select><label class="chk"><input type="checkbox" id="dMovie" checked> filmy</label><label class="chk"><input type="checkbox" id="dTv" checked> seriale</label></div>
+<fieldset><legend>Nastrój</legend><div class="chips" id="dMood"></div></fieldset>
+<fieldset><legend>Gatunek</legend><div class="chips" id="dGen"></div><div class="row"><label for="dMode">Gdy zaznaczę kilka gatunków</label><select id="dMode"><option value="or">wystarczy którykolwiek</option><option value="and">muszą pasować wszystkie</option></select></div></fieldset>
+<fieldset><legend>Z kim oglądam</legend><div class="chips" id="dWho"></div></fieldset>
+<div class="row"><label for="dRun">Długość (film lub odcinek serialu)</label><select id="dRun"><option value="">dowolna</option><option value="0">krótka: do 90 min (serial: do 30)</option><option value="1">średnia: 90–120 min (serial: 30–50)</option><option value="2">długa: 120–150 min (serial: 50–70)</option><option value="3">bardzo długa: ponad 150 min (serial: ponad 60)</option></select></div>
+<fieldset><legend>Temat i motyw</legend><div class="chips" id="dThm"></div></fieldset>
+<fieldset><legend>Rodzaj humoru (przy komediach)</legend><div class="chips" id="dHum"></div></fieldset>
+<details><summary>Więcej kryteriów</summary>
+<fieldset><legend>Okres powstania</legend><div class="chips" id="dDec"></div></fieldset>
+<fieldset><legend>Obraz</legend><div class="chips" id="dCol"></div></fieldset>
+<fieldset><legend>Animacja</legend><div class="chips" id="dAni"></div></fieldset>
+<div class="row"><label for="dLang">Język oryginału</label><select id="dLang"><option value="">dowolny</option><option value="pl">polski</option><option value="en">angielski</option><option value="non-en">nieangielski (napisy)</option><option value="fr">francuski</option><option value="ja">japoński</option><option value="ko">koreański</option></select>
+<label for="dProv">Dostępny w Polsce na</label><select id="dProv"><option value="">dowolnej platformie</option></select></div>
+<div class="row"><label for="dRate">Min. ocena TMDB</label><select id="dRate"><option value="5.5">5,5</option><option value="6">6</option><option value="6.5" selected>6,5</option><option value="7">7</option><option value="7.5">7,5</option></select><label for="dVotes">Min. głosów</label><input type="number" id="dVotes" value="300" min="0" step="50"></div>
+<label class="chk"><input type="checkbox" id="dOnlyRec"> tylko spośród polecanych według mojego gustu (najpierw kliknij „Szukaj polecanych" niżej)</label>
+</details>
+<div class="row"><button type="button" id="dGo" class="primary">Dobierz</button></div>
+<div id="dMsg"></div>
+<div class="grid" id="dOut"></div>
+</section>
+
+</div>
+<div id="panel2" role="tabpanel" aria-labelledby="tab2" hidden>
 <section class="box" aria-label="Ustawienia wyszukiwania">
-<h2>2. Szukaj</h2>
+<h2>Polecane według mojego gustu</h2>
+<p class="note" style="margin:0 0 6px">Przeszukuje TMDB pod kątem tytułów podobnych do tych, które oceniłem najwyżej (bez ustawiania kryteriów).</p>
 <div class="row"><label for="nSrc">Liczba tytułów źródłowych</label><select id="nSrc"><option>30</option><option selected>60</option><option>100</option></select><button type="button" id="go" class="primary">Szukaj polecanych tytułów</button></div>
 <progress id="prog" value="0" max="1" hidden></progress>
 <div id="status" role="status"></div>
@@ -86,6 +119,7 @@ progress{width:100%;height:8px}
 
 <section class="box" aria-label="Podobne do tytułu">
 <h2>Podobne do konkretnego tytułu</h2>
+<p class="note" style="margin:0 0 6px">Wpisz film lub serial, który Ci się podoba, a dostaniesz tytuły podobne do niego (z pominięciem tych, które oceniłem).</p>
 <div class="row"><input type="text" id="simQ" placeholder="np. The Wailing albo Breaking Bad" aria-label="Tytuł filmu lub serialu"><button type="button" id="simGo">Znajdź podobne</button></div>
 <div id="simMsg"></div>
 <div class="grid" id="simOut"></div>
@@ -99,6 +133,36 @@ progress{width:100%;height:8px}
 <div id="count" class="note"></div>
 <div class="grid" id="out"></div>
 </section>
+</div>
+<div id="panel3" role="tabpanel" aria-labelledby="tab3" hidden>
+<section class="box" aria-label="Psychologia">
+<h2>Filmy i seriale o zdrowiu psychicznym</h2>
+<p class="note" style="margin:0 0 8px">Wybierz temat (jeden, kilka albo żaden, wtedy losuję z różnych). Wyniki łączą trzy źródła: krótką listę tytułów używanych dydaktycznie, kategorie Wikipedii (pobierane na żywo przez Wikidata, więc lista rośnie razem z Wikipedią) i słowa kluczowe TMDB. Obraz zaburzeń w filmach bywa uproszczony albo nieścisły, więc to materiał do dyskusji i obserwacji, nie do diagnozowania. Tytuły o przemocy, samobójstwie i zaburzeniach odżywiania zawierają mocne treści, a niektóre inne też są emocjonalnie trudne.</p>
+<div id="pCond"></div>
+<fieldset id="pWikiBox" hidden><legend>Dodatkowe kategorie z Wikipedii (pobrane na żywo)</legend><div class="chips" id="pWiki"></div></fieldset>
+<fieldset><legend>Gotowe listy (zaznaczone listy dodają swoje tytuły; bez wybranego tematu szukam tylko w nich)</legend><div class="chips" id="pLists"></div>
+<div class="row"><label for="pFile">Własna lista z IMDb (plik CSV z przycisku Export na stronie listy)</label><input type="file" id="pFile" accept=".csv,text/csv"></div><div id="pFileMsg"></div></fieldset>
+<fieldset><legend>Własne słowo kluczowe TMDB (po angielsku, kilka po przecinku)</legend><div class="row"><input type="text" id="pKw" placeholder="np. hallucination, grief, hospice" aria-label="Słowa kluczowe TMDB"></div><p class="note" style="margin:0">Słowa kluczowe to etykiety nadawane filmom przez użytkowników TMDB. Wpisz słowo, a pokażę, które etykiety rozpoznał TMDB, i znajdę filmy z nimi. Same słowa przeglądasz na themoviedb.org/keyword/…</p></fieldset>
+<fieldset><legend>Pokaż</legend><div class="chips" id="pMode"></div></fieldset>
+<div class="row"><label for="pN">Ile wyników</label><select id="pN"><option>3</option><option selected>6</option><option>12</option></select><label class="chk"><input type="checkbox" id="pMovie" checked> filmy</label><label class="chk"><input type="checkbox" id="pTv" checked> seriale</label><button type="button" id="pGo" class="primary">Szukaj</button></div>
+<div id="pMsg"></div>
+<div class="grid" id="pOut"></div>
+<details><summary>Skąd te tytuły i jak szukać dalej</summary>
+<ul style="columns:1">
+<li><a href="https://en.wikipedia.org/wiki/List_of_films_about_mental_disorders" target="_blank" rel="noopener">Wikipedia: lista filmów o zaburzeniach psychicznych</a> (według zaburzeń).</li>
+<li><a href="https://www.otago.ac.nz/otagobulletin/research/top-10-movies-for-study-of-mental-health" target="_blank" rel="noopener">Uniwersytet Otago: „Madness in the Movies"</a>, badanie wyboru filmów dla studentów medycyny, z pełną listą 503 filmów.</li>
+<li><a href="https://www.imdb.com/list/ls057738327" target="_blank" rel="noopener">IMDb: 30 Great Movies About Mental Illness</a> (z opisem zaburzeń przy każdym filmie).</li>
+<li>Listy: Otago „Madness in the Movies" (<a href="https://www.otago.ac.nz/otagobulletin/research/top-10-movies-for-study-of-mental-health" target="_blank" rel="noopener">opis badania</a>), IMDb (30 Great Movies About Mental Illness) i Wikipedia (lista pobierana na żywo). Listy IMDb nie mają publicznego API, więc dowolną inną listę (np. „Movies Every Psychology Student Must See") wczytasz własnym eksportem CSV.</li>
+<li>Na żywo: kategorie Wikipedii „Films about …" (np. depression, bipolar disorder, eating disorders) → numery IMDb z Wikidata → TMDB. Do tego słowa kluczowe TMDB (np. depression, school shooting). Trafność bywa różna, bo kategorie tworzą wolontariusze, a słowa kluczowe użytkownicy.</li>
+</ul></details>
+</section>
+</div>
+<section class="box" aria-label="Moje oznaczenia">
+<h2>Obejrzane i pominięte propozycje (<span id="mkCount">0</span>)</h2>
+<p class="note" style="margin:0">Przycisk „Widziałem" przy propozycji chowa ją i zapisuje (razem z oceną, jeśli ją podam) w tej przeglądarce. Nie trafia to na serwer ani do innych odwiedzających.</p>
+<details><summary>Pokaż listę i eksport</summary><ul id="mkList"></ul><textarea id="mkExport" readonly aria-label="Eksport oznaczeń"></textarea><div class="row"><button type="button" id="mkCopy">Kopiuj listę</button><button type="button" id="mkClear">Wyczyść wszystkie</button></div></details>
+</section>
+
 <p class="note">This product uses the TMDB API but is not endorsed or certified by TMDB. Dane o filmach i serialach: themoviedb.org.</p>
 <div id="live" class="sr" aria-live="polite"></div>
 </div>
@@ -203,13 +267,14 @@ $('#sample').addEventListener('click',()=>{const t='Name,Year,Rating\nThe Matrix
 const card=e=>{const m=e.m,why=e.src.sort((a,b)=>b.c-a.c).slice(0,3).map(s=>esc(s.t)).join(', ');
 const orig=m.original_title&&m.original_title!==m.title?esc(m.original_title)+' · ':'',gn=(m.genre_ids||[]).map(i=>GEN[i]&&GEN[i][0]).filter(Boolean).slice(0,3).join(', ');
 const ov=(m.overview||'').length>170?m.overview.slice(0,170).replace(/\s\S*$/,'')+'…':(m.overview||'');
-return `<article class="film">${m.poster_path?`<img class="poster" loading="lazy" alt="Plakat: ${esc(m.title)}" src="https://image.tmdb.org/t/p/w185${esc(m.poster_path)}">`:'<div class="poster" role="img" aria-label="Brak plakatu"></div>'}<div><h3>${esc(m.title)}</h3><div class="sub"><span class="badge">${m.type==='tv'?'Serial':'Film'}</span>${orig}${e.yr||''}${gn?' · '+esc(gn):''}</div><div class="sub">TMDB ${f1(m.vote_average||0)} (${(m.vote_count||0).toLocaleString('pl-PL')} głosów) · dopasowanie ${e.pct}%</div>${wt?`<div class="sub">Przewidywana moja ocena: ~${f1(predRating(m.vote_average,e.aff,wt.off||0,wt.sd))}</div>`:''}${why?`<div class="why">Podobne do tego, co lubię: ${why}</div>`:''}${ov?`<p>${esc(ov)}</p>`:''}<a href="${e.imdb?'https://www.imdb.com/title/'+esc(e.imdb)+'/':'https://www.imdb.com/find/?q='+encodeURIComponent(m.title+(e.yr?' '+e.yr:''))}" target="_blank" rel="noopener">Zobacz w IMDb ↗</a></div></article>`};
+const key=mkey(m);reg.set(key,{m,imdb:e.imdb,yr:e.yr});
+return `<article class="film">${m.poster_path?`<img class="poster" loading="lazy" alt="Plakat: ${esc(m.title)}" src="https://image.tmdb.org/t/p/w185${esc(m.poster_path)}">`:'<div class="poster" role="img" aria-label="Brak plakatu"></div>'}<div><h3>${esc(m.title)}</h3><div class="sub"><span class="badge">${m.type==='tv'?'Serial':'Film'}</span>${orig}${e.yr||''}${gn?' · '+esc(gn):''}</div><div class="sub">TMDB ${f1(m.vote_average||0)} (${(m.vote_count||0).toLocaleString('pl-PL')} głosów)${e.pct!=null?' · dopasowanie '+e.pct+'%':''}</div>${e.note?`<div class="sub">${esc(e.note)}</div>`:''}${wt?`<div class="sub">Przewidywana moja ocena: ~${f1(predRating(m.vote_average,e.aff,wt.off||0,wt.sd))}</div>`:''}${why?`<div class="why">Podobne do tego, co lubię: ${why}</div>`:''}${ov?`<p>${esc(ov)}</p>`:''}<a href="${e.imdb?'https://www.imdb.com/title/'+esc(e.imdb)+'/':'https://www.imdb.com/find/?q='+encodeURIComponent(m.title+(e.yr?' '+e.yr:''))}" target="_blank" rel="noopener">Zobacz w IMDb ↗</a><div class="acts"><button type="button" data-act="seen" data-k="${key}">Widziałem</button><button type="button" data-act="skip" data-k="${key}">Nie interesuje mnie</button></div><div class="rate" hidden>Moja ocena: ${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button type="button" data-act="rate" data-k="${key}" data-r="${n}">${n}</button>`).join('')}<button type="button" data-act="rate" data-k="${key}" data-r="0">bez oceny</button></div></div></article>`};
 const imdbCache=new Map();
 async function imdbOf(m){const k=m.type+':'+m.id;if(imdbCache.has(k))return imdbCache.get(k);let v=null;try{const r=await tmdb('/'+m.type+'/'+m.id+'/external_ids',{});v=r.imdb_id||null}catch(e){}imdbCache.set(k,v);return v}
 let renderTok=0;
 async function render(){if(!built)return;const tok=++renderTok,extra=new Set();$('#own').value.split(/\r?\n/).forEach(l=>{const n=norm(l);if(n)extra.add(n)});
 const seen={ids:seenIds,titles:built.seenT,names:built.seenN,extra};
-const ranked=rankCands(cands,seen,{types:{movie:$('#tMovie').checked,tv:$('#tTv').checked},minYear:+$('#fYear').value||0,minVotes:+$('#fVotes').value||0,minRate:+$('#fRate').value||0,genre:$('#fGenre').value,aff}).slice(0,50);
+const ranked=rankCands(cands,seen,{types:{movie:$('#tMovie').checked,tv:$('#tTv').checked},minYear:+$('#fYear').value||0,minVotes:+$('#fVotes').value||0,minRate:+$('#fRate').value||0,genre:$('#fGenre').value,aff}).filter(e=>!marks[mkey(e.m)]).slice(0,50);
 $('#count').textContent='Sprawdzam w IMDb, czego jeszcze nie oceniłem…';
 await mapLimit(ranked,6,async e=>{e.imdb=await imdbOf(e.m)});
 if(tok!==renderTok)return;
@@ -240,13 +305,283 @@ if(!hit){msg('#simMsg','Nie znaleziono takiego tytułu w TMDB.',true);$('#simOut
 const type=hit.media_type,name=hit.title||hit.name,rec=await tmdb('/'+type+'/'+hit.id+'/recommendations',{language:'pl-PL'});
 const cs=(rec.results||[]).map((m,i)=>({m:normM(m,type),score:1.01-i/25,src:[{t:name,c:1}]}));
 const seen={ids:new Set([type+':'+hit.id]),titles:built?built.seenT:new Set(),names:built?built.seenN:new Set(),extra:new Set()};
-const list=rankCands(cs,seen,{types:{movie:true,tv:true},minYear:0,minVotes:50,minRate:0,genre:'',aff:built?aff:null}).slice(0,12);
+const list=rankCands(cs,seen,{types:{movie:true,tv:true},minYear:0,minVotes:50,minRate:0,genre:'',aff:built?aff:null}).filter(e=>!marks[mkey(e.m)]).slice(0,12);
 msg('#simMsg',list.length?`Podobne do: ${esc(name)} (${type==='tv'?'serial':'film'}).${built?' Pominięte są tytuły, które już oceniłem.':''}`:'Brak propozycji (wszystko z listy już znasz albo TMDB nic nie zwróciło).',!list.length);
 $('#simOut').innerHTML=list.map(card).join('')}
 catch(e){const m=String(e.message||e);msg('#simMsg',/\b(401|403)\b/.test(m)?'TMDB odrzucił klucz zapisany w stronie.':'Nie udało się połączyć z TMDB.',true)}
 finally{$('#simGo').disabled=false}}
 $('#simGo').addEventListener('click',similar);
 $('#simQ').addEventListener('keydown',e=>{if(e.key==='Enter')similar()});
+
+/* ===== oznaczenia: widziałem / nie interesuje mnie ===== */
+const MK='filmy.marks.v1';let marks={};
+try{marks=JSON.parse(localStorage.getItem(MK)||'{}')||{}}catch(e){marks={}}
+const saveMarks=()=>{try{localStorage.setItem(MK,JSON.stringify(marks))}catch(e){}};
+const reg=new Map(),mkey=m=>m.type+':'+m.id;
+function setMark(k,kind,r){const x=reg.get(k)||{};marks[k]={t:x.m?x.m.title:'',y:x.yr||'',ty:k.split(':')[0],imdb:x.imdb||null,k:kind,r:r||null,d:Date.now()};saveMarks();renderMarks()}
+function renderMarks(){const ks=Object.keys(marks).sort((a,b)=>marks[b].d-marks[a].d);
+$('#mkCount').textContent=ks.length;
+$('#mkList').innerHTML=ks.map(k=>{const x=marks[k];return `<li>${esc(x.t||k)}${x.y?' ('+esc(x.y)+')':''} · ${x.k==='seen'?'widziałem'+(x.r?', ocena '+x.r+'/10':''):'nie interesuje mnie'} <button type="button" data-act="undo" data-k="${esc(k)}">Cofnij</button></li>`}).join('');
+$('#mkExport').value=ks.map(k=>{const x=marks[k];return [x.imdb||'',x.k==='seen'?(x.r||''):'pominięty',x.ty==='tv'?'serial':'film',(x.t||'')+(x.y?' ('+x.y+')':'')].join('\t')}).join('\n')}
+document.addEventListener('click',ev=>{const b=ev.target.closest&&ev.target.closest('[data-act]');if(!b)return;const k=b.dataset.k,a=b.dataset.act,art=b.closest('article');
+if(a==='seen'){const r=art.querySelector('.rate');if(r)r.hidden=!r.hidden;return}
+if(a==='skip'){setMark(k,'skip',null);art.remove();return}
+if(a==='rate'){setMark(k,'seen',+b.dataset.r||null);art.remove();return}
+if(a==='undo'){delete marks[k];saveMarks();renderMarks();if(built&&cands.length)render()}});
+$('#mkCopy').addEventListener('click',()=>{const t=$('#mkExport');t.select();try{navigator.clipboard.writeText(t.value)}catch(e){document.execCommand('copy')}});
+$('#mkClear').addEventListener('click',()=>{if(confirm('Usunąć wszystkie oznaczenia z tej przeglądarki?')){marks={};saveMarks();renderMarks();if(built&&cands.length)render()}});
+
+/* ===== zakładki ===== */
+document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-tab]').forEach(x=>{const on=x===b;x.setAttribute('aria-selected',on?'true':'false');const pn=$('#panel'+x.dataset.tab);if(pn)pn.hidden=!on})}));
+/* ===== dobierz na dziś ===== */
+const chips=(id,name,items,type)=>{$(id).innerHTML=items.map(([v,l])=>`<label class="chip"><input class="sr" type="${type||'checkbox'}" name="${name}" value="${esc(v)}"${type==='radio'&&v===''?' checked':''}>${esc(l)}</label>`).join('')};
+const chk=name=>[...document.querySelectorAll(`input[name="${name}"]:checked`)].map(x=>x.value);
+const radio=name=>{const x=document.querySelector(`input[name="${name}"]:checked`);return x?x.value:''};
+const GID={Action:28,Adventure:12,Animation:16,Comedy:35,Crime:80,Documentary:99,Drama:18,Family:10751,Fantasy:14,History:36,Horror:27,Music:10402,Mystery:9648,Romance:10749,'Sci-Fi':878,Thriller:53,War:10752,Western:37};
+const MOODS={lekko:{l:'Lekki i pocieszający',g:[35,10751,10749,16,12],x:[27,53,10752,80]},smiech:{l:'Chcę się pośmiać',g:[35],x:[27,10752]},napiecie:{l:'Napięcie',g:[53,9648,27,80],x:[10751,16]},wzruszenie:{l:'Wzruszenie',g:[18,10749,10402],x:[27]},mysl:{l:'Coś do myślenia',g:[878,9648,18,99],x:[10751]},energia:{l:'Energia i akcja',g:[28,12,878],x:[]},mrok:{l:'Mroczny i ciężki',g:[27,53,80,18,10752],x:[35,10751,16]}};
+const WHO={'':{l:'dowolnie'},solo:{l:'sam(a)',b:{53:.3,9648:.3,878:.2,18:.2,99:.2}},para:{l:'z partnerem lub partnerką',b:{10749:.4,35:.2,12:.2,18:.1}},znajomi:{l:'ze znajomymi',b:{35:.3,27:.2,28:.2,53:.1}},dzieci:{l:'z rodziną i dziećmi',g:[10751,16],x:[27,53,80,10752],cert:'PG'},starsi:{l:'z rodzicami lub dziadkami',x:[27,53],cert:'PG-13',b:{18:.2,35:.2,36:.3,10749:.1}}};
+const HUM={czarny:['Czarny humor',['dark comedy','black comedy']],satyra:['Satyra',['satire']],absurd:['Absurd',['absurd','surreal comedy']],slapstick:['Slapstick',['slapstick']],parodia:['Parodia',['parody','spoof']],rubaszny:['Rubaszny, wulgarny',['raunchy','crude humor','gross-out comedy']],kumple:['Kumpelski (buddy)',['buddy comedy']],mockument:['Mockument',['mockumentary']]};
+const DECS=[['<1960','przed 1960',null,'1959-12-31'],['1960','lata 60.','1960-01-01','1969-12-31'],['1970','lata 70.','1970-01-01','1979-12-31'],['1980','lata 80.','1980-01-01','1989-12-31'],['1990','lata 90.','1990-01-01','1999-12-31'],['2000','lata 2000.','2000-01-01','2009-12-31'],['2010','lata 2010.','2010-01-01','2019-12-31'],['2020','od 2020','2020-01-01',null]];
+const THM={prawdziwa:['Na faktach',['based on true story']],ksiazka:['Na podstawie książki',['based on novel','based on book']],skok:['Skok, napad (heist)',['heist']],szpiedzy:['Szpiedzy',['spy']],policja:['Policja i śledztwo',['police','detective']],kosmos:['Kosmos',['space','outer space']],wesele:['Wesele',['wedding']],wyscigi:['Wyścigi',['car race','racing']],girl:['Silne bohaterki (girl power)',['female protagonist','girl power']],sequel:['Kontynuacje i sequele',['sequel']],nyc:['Nowy Jork',['new york city']],vegas:['Las Vegas',['las vegas']],czas:['Podróże w czasie',['time travel']],dorastanie:['Dorastanie',['coming of age']],roadtrip:['Podróż samochodem (road movie)',['road trip']],zemsta:['Zemsta',['revenge']],dystopia:['Dystopia',['dystopia']],wiezienie:['Więzienie',['prison']],sad:['Sąd i procesy',['courtroom']],top:['Absolutna czołówka (ocena 8+, 10 000+ głosów)',[]]};
+const RT={movie:[[0,90],[90,120],[120,150],[150,400]],tv:[[0,30],[30,50],[50,70],[60,400]]};
+const TVG={28:['10759'],12:['10759'],878:['10765'],14:['10765'],10752:['10768'],53:['80','9648']};
+const gFor=(type,ids)=>{const s=new Set();ids.forEach(i=>(type==='tv'?(TVG[i]||[String(i)]):[String(i)]).forEach(x=>s.add(x)));return [...s]};
+chips('#dMood','dMood',Object.entries(MOODS).map(([k,v])=>[k,v.l]));
+chips('#dGen','dGen',GENRE_OPTS.map(([n,pl])=>[String(GID[n]),pl]));
+chips('#dWho','dWho',Object.entries(WHO).map(([k,v])=>[k,v.l]),'radio');
+chips('#dThm','dThm',Object.entries(THM).map(([k,v])=>[k,v[0]]));
+chips('#dHum','dHum',Object.entries(HUM).map(([k,v])=>[k,v[0]]));
+chips('#dDec','dDec',DECS.map(d=>[d[0],d[1]]));
+chips('#dCol','dCol',[['','dowolny'],['bw','czarno-biały'],['color','kolorowy']],'radio');
+chips('#dAni','dAni',[['','dowolnie'],['only','tylko animacje (bajki)'],['no','bez animacji']],'radio');
+const kwCache=new Map();
+const KWFIX={'psychology':2800,'insane asylum':4924};
+function kwId(name){if(KWFIX[name])return Promise.resolve(KWFIX[name]);if(!kwCache.has(name))kwCache.set(name,tmdb('/search/keyword',{query:name}).then(r=>{const l=r.results||[],h=l.find(x=>String(x.name).toLowerCase()===name)||l[0];return h?h.id:null}).catch(()=>null));return kwCache.get(name)}
+const kwIds=async names=>(await Promise.all(names.map(kwId))).filter(Boolean);
+const kwOfCache=new Map();
+async function kwOf(m){const k=mkey(m);if(!kwOfCache.has(k)){let v=new Set();try{const r=await tmdb('/'+m.type+'/'+m.id+'/keywords',{});v=new Set((r.keywords||r.results||[]).map(x=>x.id))}catch(e){}kwOfCache.set(k,v)}return kwOfCache.get(k)}
+(async()=>{try{const r=await tmdb('/watch/providers/movie',{watch_region:'PL',language:'pl-PL'}),re=/netflix|\bmax\b|hbo|disney|prime|skyshowtime|canal\+|apple tv|player|polsat|tvp|cda|rakuten|mubi|filmbox/i,l=(r.results||[]).filter(p=>re.test(p.provider_name)).sort((a,b)=>((a.display_priorities&&a.display_priorities.PL)??99)-((b.display_priorities&&b.display_priorities.PL)??99));
+$('#dProv').innerHTML+=l.map(p=>`<option value="${p.provider_id}">${esc(p.provider_name)}</option>`).join('')}catch(e){}})();
+let dTok=0;
+async function dobierz(){const tok=++dTok,types=[$('#dMovie').checked&&'movie',$('#dTv').checked&&'tv'].filter(Boolean);
+if(!types.length){msg('#dMsg','Zaznacz film albo serial.',true);return}
+const N=+$('#dN').value||3,gsel=chk('dGen').map(Number),mood=chk('dMood'),hum=chk('dHum'),thm=chk('dThm'),decs=chk('dDec'),who=WHO[radio('dWho')]||WHO[''],col=radio('dCol'),ani=radio('dAni'),and=$('#dMode').value==='and',run=$('#dRun').value,lang=$('#dLang').value,prov=$('#dProv').value;let minRate=+$('#dRate').value||0,minVotes=+$('#dVotes').value||0;const onlyRec=$('#dOnlyRec').checked;
+if(onlyRec&&!cands.length){msg('#dMsg','Najpierw kliknij „Szukaj polecanych tytułów" niżej albo odznacz opcję „tylko spośród polecanych".',true);return}
+$('#dGo').disabled=true;msg('#dMsg','Szukam…',false);$('#dOut').innerHTML='';
+try{
+ const moods=mood.map(k=>MOODS[k]),moodG=[...new Set(moods.flatMap(m=>m.g))],moodX=moods.length?moods.map(m=>m.x).reduce((a,b)=>a.filter(x=>b.includes(x))):[];
+ const explicit=gsel.slice(),useMoodG=!explicit.length&&!who.g;
+ let sg=who.g?who.g.slice():explicit.length?explicit:(useMoodG?moodG:[]);
+ const needLocal=[];if(ani==='only'){if(!sg.length||and||who.g)sg=sg.concat(16);else needLocal.push([16])}
+ if(hum.length)needLocal.push([35]);
+ if(who.g&&explicit.length)needLocal.push(explicit);
+ const ex=[...new Set([...(who.x||[]),...moodX,...(ani==='no'?[16]:[])])].filter(x=>!sg.includes(x)&&!explicit.includes(x));
+ const bwId=(col==='bw'||col==='color')?await kwId('black and white'):null;
+ const topOn=thm.includes('top'),thKeys=thm.filter(t=>t!=='top');
+ if(topOn){minRate=Math.max(minRate,8);minVotes=Math.max(minVotes,10000)}
+ const thIds=thKeys.length?[...new Set(await kwIds(thKeys.flatMap(t=>THM[t][1])))]:[];
+ const humIds=hum.length?[...new Set(await kwIds(hum.flatMap(h=>HUM[h][1])))]:[];
+ const groups=[thIds,col==='bw'&&bwId?[bwId]:[],humIds].filter(g=>g.length),verify=groups.slice(1);
+ const warn=(thKeys.length&&!thIds.length?' Nie rozpoznano wybranego motywu w TMDB, więc go pominąłem.':'')+(hum.length&&!humIds.length?' Nie rozpoznano wybranego humoru w TMDB, więc go pominąłem.':'');
+ const dsel=DECS.filter(d=>decs.includes(d[0])),ranges=!dsel.length?[[null,null]]:dsel.length<=3?dsel.map(d=>[d[2],d[3]]):[[dsel[0][2],dsel[dsel.length-1][3]]];
+ const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1)),jobs=[];
+ for(const type of types)for(const rg of ranges){const p1=rnd(1,groups.length>1?2:4);(groups.length>1?[p1,p1+1,p1+2]:[p1,p1+1]).forEach(p=>jobs.push({type,rg,p}))}
+ const pool=new Map();
+ await mapLimit(jobs,5,async j=>{const t=j.type,q={language:'pl-PL',include_adult:'false',sort_by:'popularity.desc','vote_count.gte':minVotes,'vote_average.gte':minRate,page:j.p};
+  const g=gFor(t,sg);if(g.length)q.with_genres=g.join(and?',':'|');
+  const x=gFor(t,ex);if(x.length)q.without_genres=x.join(',');
+  const dk=t==='movie'?'primary_release_date':'first_air_date';if(j.rg[0])q[dk+'.gte']=j.rg[0];if(j.rg[1])q[dk+'.lte']=j.rg[1];
+  if(run!==''){const r=RT[t][+run];q['with_runtime.gte']=r[0];q['with_runtime.lte']=r[1]}
+  if(['pl','en','fr','ja','ko'].includes(lang))q.with_original_language=lang;
+  if(who.cert&&t==='movie'){q.certification_country='US';q['certification.lte']=who.cert}
+  if(prov){q.watch_region='PL';q.with_watch_providers=prov;q.with_watch_monetization_types='flatrate'}
+  if(groups.length)q.with_keywords=groups[0].join('|');
+  if(col==='color'&&bwId)q.without_keywords=String(bwId);
+  let r;try{r=await tmdb('/discover/'+t,q)}catch(e){if(/\b(401|403)\b/.test(String(e.message)))throw e;return}
+  (r.results||[]).forEach(m=>{const nm=normM(m,t);nm.original_language=m.original_language;const k=mkey(nm);if(!pool.has(k))pool.set(k,nm)})});
+ if(tok!==dTok)return;
+ const seen={ids:seenIds,titles:built?built.seenT:new Set(),names:built?built.seenN:new Set(),extra:new Set()},cmap=new Map(cands.map(c=>[mkey(c.m),c])),ctop=cands.length?Math.max(...cands.map(c=>c.score)):1;
+ let list=[];
+ for(const m of pool.values()){if(m.adult||marks[mkey(m)])continue;
+  const ids=m.genre_ids||[];if(needLocal.some(nl=>!nl.some(i=>ids.includes(i))))continue;
+  if(lang==='non-en'&&m.original_language==='en')continue;
+  const c=cmap.get(mkey(m));if(onlyRec&&!c)continue;
+  if(built&&isSeen(m,seen))continue;
+  const gn=genNames(ids),af=gn.length?gn.reduce((s,g)=>s+(aff[g]||0),0)/gn.length:0,bon=ids.length&&who.b?ids.reduce((s,i)=>s+(who.b[i]||0),0)/ids.length*2:0,mb=moodG.length&&!useMoodG?0.3*(ids.some(i=>moodG.includes(i))?1:0):0;
+  const sc=((m.vote_average||0)-6)*0.25+Math.log10((m.vote_count||0)+1)*0.15+af*1.2+bon+mb+(c?0.6*c.score/ctop:0)+Math.random()*0.5;
+  list.push({m,score:sc,src:c?c.src:[],aff:af,yr:parseInt((m.release_date||'').slice(0,4),10)||'',gn})}
+ list.sort((a,b)=>b.score-a.score);list=list.slice(0,groups.length>1?Math.max(N*8,30):Math.max(N*4,12));
+ if(verify.length){await mapLimit(list,6,async e=>{e.kw=await kwOf(e.m)});if(tok!==dTok)return;list=list.filter(e=>verify.every(g=>g.some(id=>e.kw.has(id))))}
+ await mapLimit(list,6,async e=>{e.imdb=await imdbOf(e.m)});
+ if(tok!==dTok)return;
+ const sI=built&&built.seenI?built.seenI:new Set();
+ list=list.filter(e=>!(e.imdb&&sI.has(e.imdb))).slice(0,N);
+ await mapLimit(list,5,async e=>{try{const d=await tmdb('/'+e.m.type+'/'+e.m.id,{language:'pl-PL'});if(e.m.type==='movie'&&d.runtime)e.note='Czas trwania: '+d.runtime+' min';else if(e.m.type==='tv'){const er=(d.episode_run_time||[])[0],ss=d.number_of_seasons;e.note=[er?'Odcinek: ~'+er+' min':'',ss?ss+' '+(ss===1?'sezon':ss<5?'sezony':'sezonów'):''].filter(Boolean).join(' · ')}}catch(x){}});
+ if(tok!==dTok)return;
+ $('#dOut').innerHTML=list.map(card).join('');
+ msg('#dMsg',list.length?`Wybrane dla Ciebie: ${list.length}. Kliknij „Dobierz" ponownie, żeby wylosować inne.${warn}`:'Nic nie pasuje do tych kryteriów (albo wszystko już widziałem). Poluzuj kryteria, np. obniż minimalną ocenę lub liczbę głosów.'+warn,!list.length);
+ $('#live').textContent=$('#dMsg').textContent}
+catch(e){const m=String(e.message||e);msg('#dMsg',/\b(401|403)\b/.test(m)?'TMDB odrzucił klucz zapisany w stronie.':'Nie udało się połączyć z TMDB. Sprawdź internet i spróbuj ponownie.',true)}
+finally{$('#dGo').disabled=false}}
+$('#dGo').addEventListener('click',dobierz);
+renderMarks();
+
+
+/* ===== psychologia ===== */
+const PG={diag:'Zaburzenia i diagnozy',trud:'Trudne doświadczenia',rel:'Relacje, rodzina i rozwój',spol:'Grupa i społeczeństwo',zbr:'Zbrodnia i psychologia sądowa',ter:'Terapia, instytucje i sny'};
+const PSY={
+depresja:{g:'diag',l:'Depresja',kw:['depression','clinical depression'],w:['Films about depression'],f:[['The Hours',2002],['Ordinary People',1980],['Melancholia',2011],['The Perks of Being a Wallflower',2012]]},
+poporodowa:{g:'diag',l:'Depresja poporodowa',kw:['postpartum depression'],w:[],f:[['Tully',2018]]},
+dwubiegunowa:{g:'diag',l:'Choroba dwubiegunowa',kw:['bipolar disorder','manic depression'],w:['Films about bipolar disorder'],f:[['Silver Linings Playbook',2012],['A Woman Under the Influence',1974],['Mr. Jones',1993]]},
+lek:{g:'diag',l:'Lęk, fobie i ataki paniki',kw:['anxiety','panic attack','phobia','agoraphobia','social anxiety'],w:['Films about anxiety'],f:[]},
+ocd:{g:'diag',l:'Zaburzenie obsesyjno-kompulsyjne',kw:['obsessive compulsive disorder','ocd'],w:['Films about obsessive–compulsive disorder','Films about obsessive-compulsive disorder'],f:[['As Good as It Gets',1997],['The Aviator',2004],['Matchstick Men',2003]]},
+ptsd:{g:'diag',l:'PTSD',kw:['ptsd','post-traumatic stress disorder'],w:['Films about post-traumatic stress disorder'],f:[['The Deer Hunter',1978],["Jacob's Ladder",1990],['Reign Over Me',2007],['Ordinary People',1980]]},
+schizofrenia:{g:'diag',l:'Schizofrenia i psychoza',kw:['schizophrenia','paranoid schizophrenia','hallucination'],w:['Films about schizophrenia'],f:[['A Beautiful Mind',2001],['The Soloist',2009],['Through a Glass Darkly',1961],['Clean, Shaven',1993]]},
+paranoja:{g:'diag',l:'Paranoja i urojenia',kw:['paranoia','delusion'],w:[],f:[['Take Shelter',2011],['Pi',1998]]},
+autyzm:{g:'diag',l:'Autyzm i zespół Aspergera',kw:['autism',"asperger's syndrome"],w:['Films about autism'],f:[['Rain Man',1988],['Temple Grandin',2010],['Ben X',2007],['Mary and Max',2009]]},
+adhd:{g:'diag',l:'ADHD',kw:['adhd','attention deficit hyperactivity disorder'],w:[],f:[]},
+tourette:{g:'diag',l:'Zespół Tourette\'a',kw:['tourette syndrome'],w:['Films about Tourette syndrome'],f:[]},
+uzaleznienia:{g:'diag',l:'Uzależnienia (alkohol, narkotyki)',kw:['addiction','drug addiction','alcoholism','rehab'],w:['Films about drugs','Films about alcoholism','Films about addiction'],f:[['Requiem for a Dream',2000],['Trainspotting',1996],['Leaving Las Vegas',1995],['28 Days',2000],['Flight',2012],['Beautiful Boy',2018],['Shame',2011]]},
+hazard:{g:'diag',l:'Hazard i uzależnienia behawioralne',kw:['gambling addiction','compulsive gambler','internet addiction'],w:['Films about gambling'],f:[['The Gambler',1974],['Owning Mahowny',2003]]},
+dysocjacja:{g:'diag',l:'Zaburzenia dysocjacyjne',kw:['dissociative identity disorder','multiple personality disorder'],w:['Films about dissociative identity disorder'],f:[['The Three Faces of Eve',1957],['Frankie & Alice',2010]]},
+osobowosc:{g:'diag',l:'Zaburzenia osobowości, narcyzm i psychopatia',kw:['borderline personality disorder','psychopath','sociopath','narcissist'],w:['Films about narcissism','Films about psychopaths'],f:[['Girl, Interrupted',1999],['American Psycho',2000],['The Silence of the Lambs',1991],['We Need to Talk About Kevin',2011]]},
+odzywianie:{g:'diag',l:'Zaburzenia odżywiania',kw:['eating disorder','anorexia','bulimia'],w:['Films about eating disorders'],f:[['To the Bone',2017],['Thin',2006]]},
+samookaleczenia:{g:'diag',l:'Samookaleczenia',kw:['self-harm','self mutilation'],w:[],f:[['Thirteen',2003]]},
+hipochondria:{g:'diag',l:'Hipochondria i choroby psychosomatyczne',kw:['hypochondria','hypochondriac'],w:[],f:[]},
+bezsennosc:{g:'diag',l:'Bezsenność i zaburzenia snu',kw:['insomnia','sleep disorder'],w:[],f:[['The Machinist',2004],['Insomnia',2002]]},
+demencja:{g:'diag',l:'Demencja i choroba Alzheimera',kw:['dementia',"alzheimer's disease"],w:["Films about Alzheimer's disease",'Films about dementia'],f:[['Still Alice',2014],['Iris',2001],['The Father',2020],['Away from Her',2006]]},
+amnezja:{g:'diag',l:'Amnezja i pamięć',kw:['amnesia'],w:['Films about amnesia'],f:[['Memento',2000],['50 First Dates',2004]]},
+intelektualna:{g:'diag',l:'Niepełnosprawność intelektualna',kw:['intellectual disability','down syndrome'],w:[],f:[['I Am Sam',2001],["What's Eating Gilbert Grape",1993]]},
+trauma:{g:'trud',l:'Trauma i przemoc w dzieciństwie',kw:['trauma','child abuse','sexual abuse','childhood trauma'],w:[],f:[['Room',2015],['Good Will Hunting',1997]]},
+zaloba:{g:'trud',l:'Żałoba i strata',kw:['grief','loss of loved one','death of child'],w:['Films about grief'],f:[['Manchester by the Sea',2016],['Rabbit Hole',2010],['The Sweet Hereafter',1997],['The Babadook',2014]]},
+samobojstwo:{g:'trud',l:'Samobójstwo',kw:['suicide','suicide attempt'],w:['Films about suicide'],f:[['The Virgin Suicides',1999],['Dead Poets Society',1989],['Last Days',2005],['The Bridge',2006]]},
+przemoc:{g:'trud',l:'Przemoc, zamachy i strzelaniny szkolne',kw:['school shooting','massacre','mass murder','terrorism'],w:['Films about school violence','Films about school shootings'],f:[['Elephant',2003],['Zero Day',2003],['Bowling for Columbine',2002],['Funny Games',1997],['A Clockwork Orange',1971],['The Life Before Her Eyes',2007]]},
+umieranie:{g:'trud',l:'Umieranie i choroba terminalna',kw:['terminal illness','death and dying'],w:['Films about death'],f:[['Ikiru',1952],['Amour',2012],['The Diving Bell and the Butterfly',2007]]},
+eutanazja:{g:'trud',l:'Eutanazja i decyzje końca życia',kw:['euthanasia','assisted suicide'],w:['Films about euthanasia'],f:[['The Sea Inside',2004],['Million Dollar Baby',2004]]},
+niepelnosprawnosc:{g:'trud',l:'Niepełnosprawność',kw:['disability'],w:['Films about disability'],f:[['My Left Foot',1989],['The Theory of Everything',2014]]},
+samotnosc:{g:'trud',l:'Samotność i izolacja',kw:['loneliness','isolation'],w:['Films about loneliness'],f:[['Lost in Translation',2003],['Her',2013],['Taxi Driver',1976]]},
+mobbing:{g:'trud',l:'Nękanie i mobbing (bullying)',kw:['bullying'],w:['Films about bullying'],f:[['Bully',2001],['Carrie',1976]]},
+stalking:{g:'trud',l:'Stalking i obsesja',kw:['stalker','obsession'],w:['Films about stalking'],f:[['Fatal Attraction',1987],['Misery',1990],['One Hour Photo',2002]]},
+stockholm:{g:'trud',l:'Porwanie i syndrom sztokholmski',kw:['stockholm syndrome','kidnapping'],w:[],f:[['The Collector',1965],['Stockholm',2018]]},
+dysfunkcyjna:{g:'rel',l:'Dysfunkcyjna rodzina',kw:['dysfunctional family'],w:[],f:[['August: Osage County',2013],['The Royal Tenenbaums',2001],['Ordinary People',1980]]},
+rozwod:{g:'rel',l:'Rozwód i rozpad związku',kw:['divorce','breakup'],w:['Films about divorce'],f:[['Marriage Story',2019],['Kramer vs. Kramer',1979],['Blue Valentine',2010]]},
+macierzynstwo:{g:'rel',l:'Macierzyństwo i rodzicielstwo',kw:['motherhood','single mother'],w:['Films about motherhood'],f:[['The Babadook',2014],['Tully',2018],['We Need to Talk About Kevin',2011]]},
+toksyczna:{g:'rel',l:'Toksyczna relacja i manipulacja',kw:['toxic relationship','abusive relationship','gaslighting','psychological manipulation'],w:[],f:[['Gaslight',1944],['Gone Girl',2014],['Whiplash',2014]]},
+zazdrosc:{g:'rel',l:'Zazdrość i zdrada',kw:['jealousy','infidelity'],w:[],f:[['Closer',2004],['Eyes Wide Shut',1999]]},
+rozwoj:{g:'rel',l:'Dojrzewanie i rozwój',kw:['coming of age','teenager'],w:[],f:[['Boyhood',2014],['Lady Bird',2017],['Moonlight',2016]]},
+starosc:{g:'rel',l:'Starość i starzenie się',kw:['old age','aging'],w:['Films about old age'],f:[['Amour',2012],['Wild Strawberries',1957]]},
+tozsamosc:{g:'rel',l:'Tożsamość (płeć, orientacja, kryzys tożsamości)',kw:['identity crisis','coming out','transgender','homosexuality'],w:[],f:[['Persona',1966],['Fight Club',1999],["Boys Don't Cry",1999]]},
+spoleczna:{g:'spol',l:'Psychologia społeczna (posłuszeństwo, konformizm, grupa)',kw:['psychological experiment','conformity','obedience','psychology'],w:[],f:[['Das Experiment',2001],['The Stanford Prison Experiment',2015],['Experimenter',2015],['Die Welle',2008],['12 Angry Men',1957]]},
+sekty:{g:'spol',l:'Sekty i radykalizacja',kw:['cult','brainwashing','radicalization'],w:['Films about cults'],f:[['Martha Marcy May Marlene',2011],['The Master',2012],['American History X',1998],['Wild Wild Country',2018,'tv']]},
+uprzedzenia:{g:'spol',l:'Uprzedzenia i rasizm',kw:['racism','prejudice','stereotype'],w:['Films about racism'],f:[['Crash',2004],['Do the Right Thing',1989],['Get Out',2017]]},
+profilowanie:{g:'zbr',l:'Profilowanie i seryjni mordercy',kw:['profiler','forensic psychology','serial killer'],w:['Films about serial killers'],f:[['Zodiac',2007],['Se7en',1995],['Mindhunter',2017,'tv']]},
+terapia:{g:'ter',l:'Psychoterapia i psychiatria w filmie',kw:['psychotherapy','psychotherapist','psychiatrist','therapy'],w:['Films about psychiatry','Films about psychotherapy'],f:[['Good Will Hunting',1997],['Ordinary People',1980],['Antwone Fisher',2002],['Analyze This',1999],['In Treatment',2008,'tv']]},
+szpital:{g:'ter',l:'Szpital psychiatryczny',kw:['psychiatric hospital','mental institution','insane asylum'],w:[],f:[["One Flew Over the Cuckoo's Nest",1975],['Girl, Interrupted',1999],['The Snake Pit',1948],['Shutter Island',2010]]},
+hipnoza:{g:'ter',l:'Hipnoza i manipulacja umysłem',kw:['hypnosis','mind control'],w:['Films about hypnosis'],f:[['Get Out',2017],['The Manchurian Candidate',1962]]},
+sny:{g:'ter',l:'Sny i świadome śnienie',kw:['lucid dream','dream'],w:['Films about dreams'],f:[['Inception',2010],['Paprika',2006]]}
+};
+$('#pCond').innerHTML=Object.entries(PG).map(([g,l])=>`<fieldset><legend>${esc(l)}</legend><div class="chips" id="pc_${g}"></div></fieldset>`).join('');
+Object.keys(PG).forEach(g=>chips('#pc_'+g,'pCond',Object.entries(PSY).filter(([k,v])=>v.g===g).map(([k,v])=>[k,v.l])));
+chips('#pMode','pMode',[['unseen','tylko jeszcze nie oceniłem'],['all','wszystkie (z oznaczeniem tych, które znam)']],'radio');
+$('#pMode input').checked=true;
+const curCache=new Map();
+async function resolveTitle(t,y,type){const k=type+'|'+t+'|'+y;if(curCache.has(k))return curCache.get(k);let v=null;try{const p={query:t,language:'pl-PL'};if(type==='tv')p.first_air_date_year=y;else p.year=y;const r=await tmdb('/search/'+type,p),h=(r.results||[])[0];if(h){v=normM(h,type);v.original_language=h.original_language}}catch(e){}curCache.set(k,v);return v}
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+/* Wikipedia (kategorie) -> Wikidata (numer IMDb) -> TMDB (/find) */
+const WPAPI='https://en.wikipedia.org/w/api.php',WDAPI='https://www.wikidata.org/w/api.php';
+async function wj(base,p){const u=new URL(base);Object.entries({format:'json',origin:'*',...p}).forEach(([k,v])=>u.searchParams.set(k,v));const r=await fetch(u);if(!r.ok)throw new Error('WIKI '+r.status);return r.json()}
+const wpOK=new Map(),wpLabel=new Map();
+Object.values(PSY).forEach(v=>(v.w||[]).forEach(n=>wpLabel.set(n,v.l)));
+async function wpInit(){try{
+ const all=[...wpLabel.keys()];
+ for(let i=0;i<all.length;i+=40){const r=await wj(WPAPI,{action:'query',prop:'categoryinfo',titles:all.slice(i,i+40).map(t=>'Category:'+t).join('|')});Object.values((r.query&&r.query.pages)||{}).forEach(p=>{if(p.categoryinfo&&p.categoryinfo.pages>0)wpOK.set(String(p.title).replace(/^Category:/,''),p.categoryinfo.pages)})}
+ const extra=[];
+ for(const root of ['Films about mental disorders','Films about mental health']){try{const r=await wj(WPAPI,{action:'query',list:'categorymembers',cmtitle:'Category:'+root,cmtype:'subcat',cmlimit:200});((r.query&&r.query.categorymembers)||[]).forEach(c=>{const n=String(c.title).replace(/^Category:/,'');if(/^Films about /.test(n)&&!wpLabel.has(n)&&!extra.includes(n))extra.push(n)})}catch(e){}}
+ if(extra.length){extra.forEach(n=>{wpLabel.set(n,n.replace(/^Films about /,''));wpOK.set(n,1)});$('#pWikiBox').hidden=false;chips('#pWiki','pCond',extra.map(n=>['wp:'+n,n.replace(/^Films about /,'')]))}
+}catch(e){}}
+async function wikiImdbIds(cat,k){const r=await wj(WPAPI,{action:'query',list:'categorymembers',cmtitle:'Category:'+cat,cmtype:'page',cmnamespace:0,cmlimit:500});
+ const ids=shuffle(((r.query&&r.query.categorymembers)||[]).map(x=>x.pageid)).slice(0,k);if(!ids.length)return [];
+ const pp=await wj(WPAPI,{action:'query',prop:'pageprops',ppprop:'wikibase_item',pageids:ids.join('|')});
+ const qs=Object.values((pp.query&&pp.query.pages)||{}).map(p=>p.pageprops&&p.pageprops.wikibase_item).filter(Boolean);if(!qs.length)return [];
+ const wd=await wj(WDAPI,{action:'wbgetentities',ids:qs.join('|'),props:'claims'}),out=[];
+ Object.values(wd.entities||{}).forEach(en=>{const c=en.claims&&en.claims.P345,v=c&&c[0]&&c[0].mainsnak&&c[0].mainsnak.datavalue&&c[0].mainsnak.datavalue.value;if(/^tt\d+$/.test(v||''))out.push(v)});return out}
+wpInit();
+/* ===== gotowe listy, własna lista IMDb, własne słowa kluczowe ===== */
+const LISTS={
+otago:{l:'Otago: „Madness in the Movies" (top 10 dla studentów medycyny)',f:[['Ordinary People',1980,'duża depresja, PTSD'],['Silver Linings Playbook',2012,'choroba dwubiegunowa, OCD'],['Trainspotting',1996,'heroina, odstawienie, zachowania socjopatyczne'],["Winter's Bone",2010,'ubóstwo, metamfetamina, możliwa depresja'],['Rachel Getting Married',2008,'uzależnienie i terapia 12 kroków, dysfunkcja rodziny'],['Half Nelson',2006,'uzależnienie od cracku'],['Another Year',2010,'alkohol, depresja, rola poradnictwa'],['Passion Fish',1992,'alkoholizm, uzależnienie od kokainy'],['The Devil and Daniel Johnston',2006,'dokument: choroba dwubiegunowa'],['An Angel at My Table',1990,'możliwa schizofrenia, dyskutowany autyzm']]},
+imdb30:{l:'IMDb: „30 Great Movies About Mental Illness" (z opisem zaburzeń)',f:[['A Streetcar Named Desire',1951,'histrioniczne zaburzenie osobowości'],['Psycho',1960,'zaburzenie dysocjacyjne'],["One Flew Over the Cuckoo's Nest",1975,'zaburzenie osobowości dyssocjalne'],['Ordinary People',1980,'PTSD, depresja kliniczna'],['Fatal Attraction',1987,'osobowość borderline'],['Rain Man',1988,'autyzm'],['Misery',1990,'choroba dwubiegunowa'],["Jacob's Ladder",1990,'zaburzenie dysocjacyjne'],["What's Eating Gilbert Grape",1993,'autyzm'],['Benny & Joon',1993,'schizofrenia'],['The Virgin Suicides',1999,'depresja kliniczna'],['American Beauty',1999,'depresja kliniczna'],['Girl, Interrupted',1999,'osobowość dyssocjalna i borderline'],['Fight Club',1999,'zaburzenie dysocjacyjne'],['Me, Myself & Irene',2000,'zaburzenie dysocjacyjne'],['American Psycho',2000,'osobowość dyssocjalna i narcystyczna'],['Punch-Drunk Love',2002,'zaburzenie schizoafektywne'],['The Aviator',2004,'OCD, agorafobia'],['Brødre',2004,'PTSD'],['The Machinist',2004,'amnezja psychogenna po bezsenności'],['Wristcutters: A Love Story',2006,'depresja kliniczna'],['Reign Over Me',2007,'PTSD'],['Lars and the Real Girl',2007,'zaburzenie urojeniowe'],['The Number 23',2007,'zaburzenie dysocjacyjne'],['The Soloist',2009,'schizofrenia']]},
+wiki:{l:'Wikipedia: „List of films about mental disorders" (pobierane na żywo)',live:true}
+};
+let userList=[];
+function listChips(){const keep=new Set(chk('pList'));chips('#pLists','pList',[...Object.entries(LISTS).map(([k,v])=>[k,v.l]),...(userList.length?[['user','Moja wczytana lista IMDb ('+userList.length+' tytułów)']]:[])]);document.querySelectorAll('input[name="pList"]').forEach(i=>{if(keep.has(i.value))i.checked=true})}
+listChips();
+$('#pFile').addEventListener('change',async ev=>{const f=ev.target.files&&ev.target.files[0];if(!f)return;
+ const rows=parseCSV(await f.text()),h=(rows[0]||[]).map(x=>x.trim()),ci=h.indexOf('Const');
+ if(ci<0){msg('#pFileMsg','To nie wygląda na eksport listy z IMDb (brak kolumny Const). Na stronie listy otwórz menu i wybierz Export.',true);return}
+ userList=rows.slice(1).map(r=>(r[ci]||'').trim()).filter(x=>/^tt\d+$/.test(x));
+ msg('#pFileMsg',`Wczytano ${userList.length} tytułów z listy. Zaznaczyłem ją w „Gotowych listach".`,false);listChips();const u=document.querySelector('input[name="pList"][value="user"]');if(u)u.checked=true});
+let wlCache=null;
+async function wikiListEntries(){if(wlCache)return wlCache;
+ const r=await wj(WPAPI,{action:'parse',page:'List_of_films_about_mental_disorders',prop:'wikitext',redirects:1}),t=(r.parse&&r.parse.wikitext&&r.parse.wikitext['*'])||'',out=[];let label='lista Wikipedii';
+ for(const line of t.split('\n')){const h=/^(=+)\s*(.*?)\s*\1\s*$/.exec(line);if(h){label=h[2].replace(/\[\[(?:[^\]|]*\|)?([^\]]*)\]\]/g,'$1').replace(/<[^>]+>/g,'').trim()||label;continue}
+  const lm=/\[\[([^\]|#]+)(?:\|[^\]]*)?\]\]/.exec(line);if(!lm)continue;const ym=/(?:–|—|-|&ndash;)\s*((?:19|20)\d\d)\b/.exec(line.slice(lm.index+lm[0].length));if(!ym)continue;
+  out.push({title:lm[1].trim(),year:+ym[1],label})}
+ wlCache=out;return out}
+async function wikiTitlesToImdb(entries){const res=[];
+ for(let i=0;i<entries.length;i+=40){const part=entries.slice(i,i+40),pp=await wj(WPAPI,{action:'query',prop:'pageprops',ppprop:'wikibase_item',redirects:1,titles:part.map(e=>e.title).join('|')}),q=pp.query||{};
+  const fin=t=>{let x=t;(q.normalized||[]).forEach(n=>{if(n.from===x)x=n.to});(q.redirects||[]).forEach(n=>{if(n.from===x)x=n.to});return x},byT=new Map();Object.values(q.pages||{}).forEach(p=>{if(p.pageprops&&p.pageprops.wikibase_item)byT.set(p.title,p.pageprops.wikibase_item)});
+  const qs=[...new Set(part.map(e=>byT.get(fin(e.title))).filter(Boolean))];if(!qs.length)continue;
+  const wd=await wj(WDAPI,{action:'wbgetentities',ids:qs.join('|'),props:'claims'}),im=new Map();
+  Object.entries(wd.entities||{}).forEach(([id,en])=>{const c=en.claims&&en.claims.P345,v=c&&c[0]&&c[0].mainsnak&&c[0].mainsnak.datavalue&&c[0].mainsnak.datavalue.value;if(/^tt\d+$/.test(v||''))im.set(id,v)});
+  part.forEach(e=>{const qid=byT.get(fin(e.title)),v=qid&&im.get(qid);if(v)res.push({imdb:v,label:e.label})})}
+ return res}
+let pTok=0;
+async function psycho(){const tok=++pTok,types=[$('#pMovie').checked&&'movie',$('#pTv').checked&&'tv'].filter(Boolean);
+if(!types.length){msg('#pMsg','Zaznacz film albo serial.',true);return}
+const N=+$('#pN').value||6,unseenOnly=radio('pMode')!=='all',sel=chk('pCond'),listSel=chk('pList'),custom=$('#pKw').value.split(',').map(x=>x.trim().toLowerCase()).filter(Boolean),
+ selKeys=sel.filter(x=>!x.startsWith('wp:')),selWp=sel.filter(x=>x.startsWith('wp:')).map(x=>x.slice(3)),useTopics=sel.length>0||(!listSel.length&&!custom.length),keys=useTopics?(sel.length?selKeys:Object.keys(PSY)):[];
+$('#pGo').disabled=true;msg('#pMsg','Szukam…',false);$('#pOut').innerHTML='';
+try{
+ const pool=new Map(),add=(m,label,src)=>{const k=mkey(m);let e=pool.get(k);if(!e){e={m,conds:new Set(),srcs:new Set()};pool.set(k,e)}e.conds.add(label);e.srcs.add(src)};
+ const findAdd=async(im,label,src)=>{const r=await tmdb('/find/'+im,{external_source:'imdb_id',language:'pl-PL'}),mv=r.movie_results&&r.movie_results[0],tv=r.tv_results&&r.tv_results[0],h=mv&&types.includes('movie')?[mv,'movie']:tv&&types.includes('tv')?[tv,'tv']:null;if(!h)return;const nm=normM(h[0],h[1]);nm.original_language=h[0].original_language;imdbCache.set(mkey(nm),im);add(nm,label,src)};
+ const cur=new Map();keys.forEach(c=>PSY[c].f.forEach(([t,y,ty])=>{const type=ty||'movie';if(!types.includes(type))return;const k=type+'|'+t+'|'+y;let e=cur.get(k);if(!e){e={t,y,type,labels:new Set()};cur.set(k,e)}e.labels.add(PSY[c].l)}));
+ listSel.filter(k=>LISTS[k]&&LISTS[k].f).forEach(k=>LISTS[k].f.forEach(([t,y,cond])=>{if(!types.includes('movie'))return;const kk='movie|'+t+'|'+y;let e=cur.get(kk);if(!e){e={t,y,type:'movie',labels:new Set()};cur.set(kk,e)}e.labels.add(cond+' ('+LISTS[k].l.split(':')[0]+')')}));
+ const pickCur=shuffle([...cur.values()]).slice(0,Math.max(N*3,12));
+ const kcs=shuffle(keys).slice(0,sel.length?keys.length:4),kwJobs=[];
+ for(const c of kcs){const ids=[...new Set(await kwIds(PSY[c].kw))];if(!ids.length)continue;for(const t of types)kwJobs.push({label:PSY[c].l,t,ids})}
+ const customInfo=[];
+ for(const term of custom){try{const r=await tmdb('/search/keyword',{query:term}),l=(r.results||[]).slice(0,3);if(!l.length){customInfo.push(term+' (brak w TMDB)');continue}customInfo.push(term+' → '+l.map(x=>x.name).join(', '));for(const t of types)kwJobs.push({label:'słowo: '+term,t,ids:l.map(x=>x.id)})}catch(e){}}
+ let wcats=[...new Set([...(useTopics&&sel.length?selKeys.flatMap(k=>PSY[k].w||[]):[]),...selWp])].filter(n=>wpOK.has(n));
+ if(useTopics&&!sel.length)wcats=shuffle([...wpOK.keys()]).slice(0,3);
+ wcats=shuffle(wcats).slice(0,5);
+ let wikiFail=false;
+ await Promise.all([
+  mapLimit(pickCur,6,async e=>{const m=await resolveTitle(e.t,e.y,e.type);if(m)e.labels.forEach(l=>add(m,l,'cur'))}),
+  mapLimit(kwJobs,5,async j=>{try{const r=await tmdb('/discover/'+j.t,{language:'pl-PL',include_adult:'false',sort_by:'popularity.desc','vote_count.gte':100,'vote_average.gte':6,with_keywords:j.ids.join('|'),page:1+Math.floor(Math.random()*2)});(r.results||[]).forEach(m=>{const nm=normM(m,j.t);nm.original_language=m.original_language;add(nm,j.label,'kw')})}catch(e){if(/\b(401|403)\b/.test(String(e.message)))throw e}}),
+  mapLimit(wcats,3,async cat=>{try{const imdbs=await wikiImdbIds(cat,Math.max(8,Math.ceil(30/wcats.length)));await mapLimit(imdbs,6,im=>findAdd(im,wpLabel.get(cat)||cat,'wiki'))}catch(e){if(/\b(401|403)\b/.test(String(e.message)))throw e;wikiFail=true}}),
+  (async()=>{if(!listSel.includes('wiki'))return;try{const es=shuffle(await wikiListEntries()).slice(0,Math.max(N*4,24)),rs=await wikiTitlesToImdb(es);await mapLimit(rs,6,r=>findAdd(r.imdb,r.label,'wikilist'))}catch(e){if(/\b(401|403)\b/.test(String(e.message)))throw e;wikiFail=true}})(),
+  (async()=>{if(!listSel.includes('user')||!userList.length)return;await mapLimit(shuffle(userList).slice(0,Math.max(N*4,24)),6,im=>findAdd(im,'moja lista IMDb','imdblist').catch(()=>{}))})()]);
+ if(tok!==pTok)return;
+ const seen={ids:seenIds,titles:built?built.seenT:new Set(),names:built?built.seenN:new Set(),extra:new Set()};
+ let list=[];
+ for(const e of pool.values()){const m=e.m;if(m.adult)continue;const mk=marks[mkey(m)];if(mk&&(unseenOnly||mk.k==='skip'))continue;
+  const known=(built&&isSeen(m,seen))||(mk&&mk.k==='seen');if(unseenOnly&&known)continue;
+  list.push({m,src:[],aff:0,yr:parseInt((m.release_date||m.first_air_date||'').slice(0,4),10)||'',conds:e.conds,srcs:e.srcs,known,score:(e.srcs.has('cur')||e.srcs.has('imdblist')?1:0)+(e.srcs.has('wiki')||e.srcs.has('wikilist')?0.5:0)+((m.vote_average||0)-6)*0.25+Math.log10((m.vote_count||0)+1)*0.1+e.conds.size*0.2+Math.random()*0.6})}
+ list.sort((a,b)=>b.score-a.score);list=list.slice(0,Math.max(N*3,12));
+ await mapLimit(list,6,async e=>{e.imdb=await imdbOf(e.m)});
+ if(tok!==pTok)return;
+ const sI=built&&built.seenI?built.seenI:new Set();
+ list.forEach(e=>{if(e.imdb&&sI.has(e.imdb))e.known=true});
+ if(unseenOnly)list=list.filter(e=>!e.known);
+ list=list.slice(0,N);
+ const SN={cur:'lista dydaktyczna',wiki:'kategoria Wikipedii',wikilist:'lista Wikipedii',imdblist:'lista IMDb',kw:'słowa kluczowe TMDB'};
+ list.forEach(e=>{e.note='Temat: '+[...e.conds].slice(0,3).join('; ')+' · źródło: '+[...e.srcs].map(x=>SN[x]).join(', ')+(e.known?' · już widziałem':'')});
+ $('#pOut').innerHTML=list.map(card).join('');
+ msg('#pMsg',(list.length?`Znaleziono ${list.length}. Kliknij „Szukaj" ponownie, żeby zobaczyć inne.`:'Nic nie znaleziono dla tych kryteriów (albo wszystko już widziałem). Wybierz inne tematy albo przełącz na „wszystkie".')+(customInfo.length?' Słowa kluczowe TMDB: '+esc(customInfo.join('; '))+'.':'')+(wikiFail?' Wikipedia nie odpowiedziała, więc pominąłem ją tym razem.':''),!list.length);
+ $('#live').textContent=$('#pMsg').textContent}
+catch(e){const m=String(e.message||e);msg('#pMsg',/\b(401|403)\b/.test(m)?'TMDB odrzucił klucz zapisany w stronie.':'Nie udało się połączyć z TMDB. Sprawdź internet i spróbuj ponownie.',true)}
+finally{$('#pGo').disabled=false}}
+$('#pGo').addEventListener('click',psycho);
 
 useEmbedded();
 
