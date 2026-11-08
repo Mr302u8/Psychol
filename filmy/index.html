@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Polecane filmy i seriale – według Twoich ocen</title>
+<style>
+:root{--bg:#fbfaf8;--card:#ffffff;--ink:#1c1c1a;--muted:#6b6a65;--axis:#b3b1a8;--line:#d9d7d0;--c1:#2a78d6;--accent:#1f4e79;--warnbg:#fff4e0;--warn:#7a4a00;--okbg:#e6f4ec;--ok:#14532d}
+:root[data-theme=dark]{--bg:#151514;--card:#1d1d1b;--ink:#f0efec;--muted:#a6a49c;--axis:#4f4e48;--line:#343432;--c1:#3987e5;--accent:#8ab8ee;--warnbg:#3a2d12;--warn:#f0c987;--okbg:#14301f;--ok:#9fe0b8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+.wrap{max-width:1000px;margin:0 auto;padding:20px 18px 40px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+h1{font-size:22px;font-weight:600;margin:0}
+.right{display:flex;gap:10px;align-items:center}
+a.back{color:var(--accent);text-decoration:none;font-size:14px}
+button{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:7px 14px;cursor:pointer}
+button:hover{border-color:var(--axis)}
+button.primary{background:var(--accent);color:var(--card);border-color:var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--c1);outline-offset:2px}
+.hint{color:var(--muted);margin:0 0 14px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+.box h2{font-size:15px;font-weight:600;margin:0 0 8px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:6px 0}
+label{font-size:13px;color:var(--muted)}
+.chk{display:flex;gap:6px;align-items:center}
+input[type=text],input[type=password],input[type=number],select,textarea{font:inherit;font-size:14px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+input[type=password]{flex:1;min-width:200px}
+#simQ{flex:1;min-width:220px}
+textarea{width:100%;min-height:70px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+input[type=number]{width:90px}
+.note{font-size:12px;color:var(--muted);margin:6px 0 0}
+.msg{border-radius:8px;padding:8px 12px;font-size:14px;margin:8px 0 0;background:var(--okbg);color:var(--ok)}
+.msg.no{background:var(--warnbg);color:var(--warn)}
+details{margin-top:8px;font-size:13px}
+summary{cursor:pointer;color:var(--accent)}
+details ul{margin:6px 0 0;padding-left:18px;columns:2}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.film{display:grid;grid-template-columns:84px 1fr;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
+.poster{width:84px;height:126px;border-radius:6px;background:var(--line);object-fit:cover}
+.film h3{font-size:15px;font-weight:600;margin:0}
+.film .sub{font-size:13px;color:var(--muted)}
+.film .why{font-size:13px;margin-top:4px}
+.film p{font-size:12px;color:var(--muted);margin:4px 0 0}
+.film a{font-size:13px;color:var(--accent)}
+.badge{display:inline-block;font-size:11px;border:1px solid var(--line);border-radius:6px;padding:0 6px;margin-right:6px;color:var(--accent)}
+progress{width:100%;height:8px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><h1>Polecane filmy i seriale</h1><div class="right"><a class="back" href="../">← Wszystkie narzędzia</a><button id="theme" type="button">Motyw: jasny/ciemny</button></div></header>
+<p class="hint">Wgraj swoje oceny (najlepiej eksport z IMDb), a narzędzie znajdzie w TMDB filmy i seriale podobne do tych, które lubisz, i pominie te, które już znasz.</p>
+
+<section class="box" aria-label="Klucz TMDB">
+<h2>1. Klucz TMDB</h2>
+<div class="row"><input type="password" id="key" placeholder="Wklej API Read Access Token albo klucz API v3" autocomplete="off" aria-label="Klucz TMDB"><button type="button" id="saveKey">Zapisz w tej przeglądarce</button><button type="button" id="delKey">Usuń</button></div>
+<p class="note">Klucz zapisuje się wyłącznie w tej przeglądarce i nie trafia do kodu strony. Najlepiej utwórz osobny, darmowy klucz na themoviedb.org (Ustawienia → API) i używaj go tylko tutaj.</p>
+<div id="keyMsg"></div>
+</section>
+
+<section class="box" aria-label="Twoje oceny">
+<h2>2. Twoje oceny</h2>
+<div class="row"><input type="file" id="file" accept=".csv,.txt,text/csv" aria-label="Plik CSV z ocenami"><button type="button" id="sample">Wczytaj przykład</button></div>
+<textarea id="csv" placeholder="Albo wklej tutaj CSV: pierwszy wiersz to nagłówki (eksport IMDb albo np. Name,Year,Rating)" aria-label="Zawartość CSV"></textarea>
+<div class="row" id="mapRow" hidden><label for="cTitle">Kolumna z tytułem</label><select id="cTitle"></select><label for="cYear">rok</label><select id="cYear"></select><label for="cRate">ocena</label><select id="cRate"></select></div>
+<div id="csvMsg"></div>
+<details><summary>Jak wybieram, na czym oprzeć rekomendacje</summary>
+<ul>
+<li>Oceny liczę względem Twojej średniej i rozrzutu, więc „lubię" znaczy „wyżej niż zwykle", a nie stały próg.</li>
+<li>Dodatkowy punkt dostaje film oceniony przez Ciebie wyżej niż przez widzów IMDb.</li>
+<li>Nowsze oceny ważą więcej niż stare (po kilku latach waga spada, ale nie poniżej 60%).</li>
+<li>Odcinki łączę w seriale. Serial bez własnej oceny dostaje średnią z ocenionych odcinków, osłabioną, gdy odcinków jest mało.</li>
+<li>Źródła to mieszanka filmów i seriali (seriale mają zarezerwowane miejsce), bez przewagi jednego gatunku.</li>
+<li>Najniżej ocenione tytuły obniżają punktację podobnych do nich propozycji.</li>
+<li>Propozycje z gatunków, które zwykle oceniasz wyżej, dostają premię.</li>
+</ul></details>
+<p class="note">Oceny przetwarzają się w przeglądarce. Do TMDB wysyłane są tylko identyfikatory IMDb albo tytuły wybranych źródeł.</p>
+</section>
+
+<section class="box" aria-label="Ustawienia wyszukiwania">
+<h2>3. Szukaj</h2>
+<div class="row"><label for="nSrc">Liczba tytułów źródłowych</label><select id="nSrc"><option>30</option><option selected>60</option><option>100</option></select><button type="button" id="go" class="primary">Szukaj polecanych tytułów</button></div>
+<progress id="prog" value="0" max="1" hidden></progress>
+<div id="status" role="status"></div>
+<div id="srcList"></div>
+</section>
+
+<section class="box" aria-label="Podobne do tytułu">
+<h2>Podobne do konkretnego tytułu</h2>
+<div class="row"><input type="text" id="simQ" placeholder="np. The Wailing albo Breaking Bad" aria-label="Tytuł filmu lub serialu"><button type="button" id="simGo">Znajdź podobne</button></div>
+<div id="simMsg"></div>
+<div class="grid" id="simOut"></div>
+</section>
+
+<section class="box" id="resBox" hidden aria-label="Wyniki">
+<h2>Wyniki</h2>
+<div class="row"><label class="chk"><input type="checkbox" id="tMovie" checked> filmy</label><label class="chk"><input type="checkbox" id="tTv" checked> seriale</label><label for="fYear">Od roku</label><input type="number" id="fYear" value="1970" min="1900" max="2100"><label for="fVotes">Min. głosów w TMDB</label><input type="number" id="fVotes" value="200" min="0" step="50"><label for="fRate">Min. ocena TMDB</label><input type="number" id="fRate" value="6" min="0" max="10" step="0.5"><label for="fGenre">Gatunek</label><select id="fGenre"></select></div>
+<label for="own">Tytuły, które już znasz, a nie ma ich w pliku (po jednym w wierszu)</label>
+<textarea id="own" aria-label="Dodatkowe tytuły do pominięcia"></textarea>
+<div id="count" class="note"></div>
+<div class="grid" id="out"></div>
+</section>
+<p class="note">This product uses the TMDB API but is not endorsed or certified by TMDB. Dane o filmach i serialach: themoviedb.org.</p>
+<div id="live" class="sr" aria-live="polite"></div>
+</div>
+<script>
+'use strict';
+//#CORE-START
+const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/ł/g,'l').replace(/[^a-z0-9]+/g,' ').trim();
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function parseCSV(t){t=String(t).replace(/^﻿/,'');const first=t.split(/\r?\n/)[0]||'';const d=[',',';','\t'].map(c=>[c,first.split(c).length]).sort((a,b)=>b[1]-a[1])[0][0];const rows=[];let row=[],f='',q=false;for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c==='"'){if(t[i+1]==='"'){f+='"';i++}else q=false}else f+=c}else if(c==='"')q=true;else if(c===d){row.push(f);f=''}else if(c==='\n'||c==='\r'){if(c==='\r'&&t[i+1]==='\n')i++;row.push(f);rows.push(row);row=[];f=''}else f+=c}if(f!==''||row.length){row.push(f);rows.push(row)}return rows.filter(r=>r.some(x=>x.trim()!==''))}
+const parseRating=v=>{const x=parseFloat(String(v==null?'':v).replace(',','.'));return Number.isFinite(x)?x:null};
+const GEN={28:['Akcja',['Action']],12:['Przygodowy',['Adventure']],16:['Animacja',['Animation']],35:['Komedia',['Comedy']],80:['Kryminał',['Crime']],99:['Dokumentalny',['Documentary']],18:['Dramat',['Drama']],10751:['Familijny',['Family']],14:['Fantasy',['Fantasy']],36:['Historyczny',['History']],27:['Horror',['Horror']],10402:['Muzyczny',['Music']],9648:['Tajemnica',['Mystery']],10749:['Romans',['Romance']],878:['Sci-Fi',['Sci-Fi']],10770:['Film TV',[]],53:['Thriller',['Thriller']],10752:['Wojenny',['War']],37:['Western',['Western']],10759:['Akcja i przygoda',['Action','Adventure']],10762:['Dla dzieci',['Family']],10763:['Wiadomości',[]],10764:['Reality show',[]],10765:['Sci-Fi i fantasy',['Sci-Fi','Fantasy']],10766:['Telenowela',['Drama']],10767:['Talk-show',[]],10768:['Wojna i polityka',['War']]};
+const GENRE_OPTS=[['Action','Akcja'],['Adventure','Przygodowy'],['Animation','Animacja'],['Comedy','Komedia'],['Crime','Kryminał'],['Documentary','Dokumentalny'],['Drama','Dramat'],['Family','Familijny'],['Fantasy','Fantasy'],['History','Historyczny'],['Horror','Horror'],['Music','Muzyczny'],['Mystery','Tajemnica'],['Romance','Romans'],['Sci-Fi','Sci-Fi'],['Thriller','Thriller'],['War','Wojenny'],['Western','Western']];
+const genNames=ids=>{const s=new Set();(ids||[]).forEach(i=>(GEN[i]?GEN[i][1]:[]).forEach(n=>s.add(n)));return [...s]};
+function isIMDb(h){const n=h.map(x=>x.trim());return n.includes('Const')&&n.includes('Your Rating')&&n.includes('Title Type')}
+function entriesIMDb(rows){const h=rows[0].map(x=>x.trim()),ix=n=>h.indexOf(n),c={imdb:ix('Const'),r:ix('Your Rating'),date:ix('Date Rated'),title:ix('Title'),orig:ix('Original Title'),type:ix('Title Type'),ir:ix('IMDb Rating'),year:ix('Year'),genres:ix('Genres')},out=[];
+for(let i=1;i<rows.length;i++){const r=rows[i],x=parseRating(r[c.r]);if(x==null||x<=0)continue;const y=parseInt(r[c.year],10),d=r[c.date]?Date.parse(r[c.date]):NaN;out.push({imdb:(r[c.imdb]||'').trim()||null,r:x,date:Number.isFinite(d)?d:null,title:(r[c.title]||'').trim(),orig:(r[c.orig]||'').trim(),type:(r[c.type]||'').trim(),year:Number.isFinite(y)?y:null,genres:(r[c.genres]||'').split(',').map(s=>s.trim()).filter(Boolean),ir:parseRating(r[c.ir])})}return out}
+function entriesGeneric(rows,map){const out=[];for(let i=1;i<rows.length;i++){const r=rows[i],t=(r[map.title]||'').trim(),x=parseRating(r[map.rating]);if(!t||x==null||x<=0)continue;const y=map.year>=0?parseInt(r[map.year],10):NaN;out.push({imdb:null,r:x,date:null,title:t,orig:t,type:'Movie',year:Number.isFinite(y)&&y>1800?y:null,genres:[],ir:null})}return out}
+function buildUnits(entries){const movies=[],series=new Map(),eps=new Map(),seenT=new Set(),seenN=new Set();
+const isMovie=t=>t==='Movie'||t==='Video'||t==='TV Movie',isTv=t=>t==='TV Series'||t==='TV Mini Series';
+for(const e of entries){
+if(isMovie(e.type)){movies.push({kind:'movie',n:0,viaEp:false,...e});[e.title,e.orig].forEach(t=>{if(t)seenT.add(norm(t)+'|'+e.year)})}
+else if(isTv(e.type)){series.set(norm(e.title),{kind:'tv',n:0,viaEp:false,...e});[e.title,e.orig].forEach(t=>{if(t)seenN.add(norm(t))})}
+else if(e.type==='TV Episode'){const k=e.title.includes(': ')?e.title.split(': ')[0]:e.title,nk=norm(k);let g=eps.get(nk);if(!g){g={name:k,list:[]};eps.set(nk,g)}g.list.push(e);seenN.add(nk)}
+else if(e.type!=='Video Game'){[e.title,e.orig].forEach(t=>{if(t)seenT.add(norm(t)+'|'+e.year)})}}
+const tv=[...series.values()];let epSeries=0,epCount=0;
+for(const [nk,g] of eps){epSeries++;epCount+=g.list.length;const mean=g.list.reduce((s,e)=>s+e.r,0)/g.list.length,last=Math.max(...g.list.map(e=>e.date||0)),s=series.get(nk);
+if(s){s.n=g.list.length;if(last&&(!s.date||last>s.date))s.date=last}
+else{const f=g.list[0];tv.push({kind:'tv',imdb:f.imdb,title:g.name,orig:g.name,type:'TV Series',year:f.year,r:mean,date:last||null,genres:f.genres,ir:null,n:g.list.length,viaEp:true})}}
+return {units:[...movies,...tv],seenT,seenN,stats:{movies:movies.length,series:tv.length,epSeries,epCount}}}
+function weigh(units,now){const rs=units.map(u=>u.r),mu=rs.reduce((a,b)=>a+b,0)/rs.length,sd=Math.max(0.8,Math.sqrt(rs.reduce((s,v)=>s+(v-mu)**2,0)/rs.length));
+const dd=units.filter(u=>u.ir).map(u=>u.r-u.ir),off=dd.length?dd.reduce((a,b)=>a+b,0)/dd.length:0;
+units.forEach(u=>{let z=(u.r-mu)/sd;if(u.viaEp)z*=u.n/(u.n+2);const bonus=u.ir?0.35*clamp((u.r-u.ir)/1.5,-1,1):0,age=u.date?Math.max(0,(now-u.date)/3.15576e10):0,rec=0.6+0.4*Math.exp(-age/3);u.z=z;u.w=(z+bonus)*rec});return {mu,sd,off}}
+const predRating=(va,aff,off,sd)=>clamp((va||0)+off+aff*sd,1,10);
+function genreAff(units){const m={};units.forEach(u=>(u.genres||[]).forEach(g=>{const e=m[g]||(m[g]={s:0,n:0});e.s+=u.z;e.n++}));const out={};for(const g in m)out[g]=m[g].s/(m[g].n+15);return out}
+function pick(list,n){const cap=Math.max(2,Math.ceil(n*0.5)),cnt={},out=[];for(const u of list){if(out.length>=n)break;const g=(u.genres&&u.genres[0])||'?';if((cnt[g]||0)>=cap)continue;cnt[g]=(cnt[g]||0)+1;out.push(u)}return out}
+function selectSources(units,N){const likes=units.filter(u=>u.w>=0.4).sort((a,b)=>b.w-a.w),lm=likes.filter(u=>u.kind==='movie'),lt=likes.filter(u=>u.kind==='tv'),tq=Math.min(lt.length,Math.max(5,Math.round(N*0.3))),mq=N-tq;
+const dis=units.filter(u=>u.w<=-1).sort((a,b)=>a.w-b.w).slice(0,15);
+return {likes:[...pick(lm,mq),...pick(lt,tq)],dislikes:dis}}
+async function mapLimit(items,limit,fn){let i=0;const w=Array.from({length:Math.min(limit,items.length)},async()=>{while(i<items.length){const k=i++;await fn(items[k],k)}});await Promise.all(w)}
+async function resolveSrc(u,tmdb){
+if(u.imdb){const r=await tmdb('/find/'+u.imdb,{external_source:'imdb_id',language:'pl-PL'}),mv=r.movie_results&&r.movie_results[0],tv=r.tv_results&&r.tv_results[0],ep=r.tv_episode_results&&r.tv_episode_results[0];
+if(u.kind==='tv'){if(tv)return {id:tv.id,type:'tv'};if(ep)return {id:ep.show_id,type:'tv'};if(mv)return {id:mv.id,type:'movie'}}
+else{if(mv)return {id:mv.id,type:'movie'};if(tv)return {id:tv.id,type:'tv'};if(ep)return {id:ep.show_id,type:'tv'}}}
+const p={query:u.title,language:'pl-PL'},path=u.kind==='tv'?'/search/tv':'/search/movie';if(u.year&&u.kind!=='tv')p.year=u.year;
+let sr=await tmdb(path,p),h=sr.results&&sr.results[0];if(!h&&p.year){delete p.year;sr=await tmdb(path,p);h=sr.results&&sr.results[0]}
+return h?{id:h.id,type:u.kind==='tv'?'tv':'movie'}:null}
+const normM=(m,type)=>({id:m.id,type,title:m.title||m.name||'',original_title:m.original_title||m.original_name||'',release_date:m.release_date||m.first_air_date||'',vote_average:m.vote_average,vote_count:m.vote_count,genre_ids:m.genre_ids,poster_path:m.poster_path,overview:m.overview,adult:m.adult});
+async function recommend(o){const {sources,tmdb,onProgress}=o,all=[...sources.likes.map(u=>({u,sign:1})),...sources.dislikes.map(u=>({u,sign:-1}))],agg=new Map(),missed=[],seenIds=new Set();let done=0;
+await mapLimit(all,5,async s=>{try{const id=await resolveSrc(s.u,tmdb);if(!id){missed.push(s.u.title);return}seenIds.add(id.type+':'+id.id);
+const rec=await tmdb('/'+id.type+'/'+id.id+'/recommendations',{language:'pl-PL'});
+(rec.results||[]).forEach((m,i)=>{const pos=1-i/25,w=s.sign>0?s.u.w:0.5*s.u.w,key=id.type+':'+m.id;let e=agg.get(key);if(!e){e={m:normM(m,id.type),score:0,src:[]};agg.set(key,e)}e.score+=w*pos;if(s.sign>0)e.src.push({t:s.u.title,c:w*pos})})}
+catch(err){if(/\b(401|403)\b/.test(String(err.message)))throw err;missed.push(s.u.title)}
+finally{done++;if(onProgress)onProgress(done,all.length)}});
+return {cands:[...agg.values()],missed,seenIds,used:all.length,likes:sources.likes.length}}
+function isSeen(m,seen){if(seen.ids.has(m.type+':'+m.id))return true;const ts=[norm(m.title),norm(m.original_title)].filter(Boolean);if(ts.some(t=>seen.extra.has(t)))return true;
+if(m.type==='tv')return ts.some(t=>seen.names.has(t));const y=parseInt((m.release_date||'').slice(0,4),10);return ts.some(t=>[y-1,y,y+1].some(yy=>seen.titles.has(t+'|'+yy)))}
+function rankCands(cands,seen,opt){const out=[];for(const e of cands){const m=e.m;if(m.adult||e.score<=0)continue;if(opt.types&&!opt.types[m.type])continue;if(isSeen(m,seen))continue;
+const yr=parseInt((m.release_date||'').slice(0,4),10);if(opt.minYear&&(!Number.isFinite(yr)||yr<opt.minYear))continue;
+if((m.vote_count||0)<opt.minVotes||(m.vote_average||0)<opt.minRate)continue;
+const gn=genNames(m.genre_ids);if(opt.genre&&!gn.includes(opt.genre))continue;
+const aff=gn.length&&opt.aff?gn.reduce((s,g)=>s+(opt.aff[g]||0),0)/gn.length:0,mult=clamp(1+0.8*aff,0.7,1.4);
+out.push({...e,gn,aff,final:e.score*mult*(0.6+0.04*(m.vote_average||0)),yr})}
+const mx=out.length?Math.max(...out.map(x=>x.final)):1;out.forEach(x=>x.pct=Math.max(1,Math.round(100*x.final/mx)));return out.sort((a,b)=>b.final-a.final)}
+//#CORE-END
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const f1=v=>Number(v).toLocaleString('pl-PL',{minimumFractionDigits:1,maximumFractionDigits:1});
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}}
+function lsDel(k){try{localStorage.removeItem(k)}catch(e){}}
+const msg=(el,t,bad)=>{$(el).innerHTML=t?`<p class="msg${bad?' no':''}" role="status">${t}</p>`:''};
+let rows=[],built=null,wt=null,aff={},cands=[],seenIds=new Set(),keyMem='';
+const getKey=()=>($('#key').value.trim()||keyMem);
+async function tmdb(path,params){const key=getKey();if(!key)throw new Error('Brak klucza TMDB');const u=new URL('https://api.themoviedb.org/3'+path);Object.entries(params||{}).forEach(([k,v])=>u.searchParams.set(k,v));const h={};if(key.startsWith('eyJ'))h.Authorization='Bearer '+key;else u.searchParams.set('api_key',key);const r=await fetch(u,{headers:h});if(!r.ok)throw new Error('TMDB '+r.status);return r.json()}
+
+$('#fGenre').innerHTML='<option value="">wszystkie</option>'+GENRE_OPTS.map(g=>`<option value="${g[0]}">${g[1]}</option>`).join('');
+$('#key').value=lsGet('tmdbKey')||'';
+$('#saveKey').addEventListener('click',()=>{const k=$('#key').value.trim();if(!k){msg('#keyMsg','Wklej najpierw klucz.',true);return}keyMem=k;msg('#keyMsg',lsSet('tmdbKey',k)?'Klucz zapisany w tej przeglądarce.':'Nie udało się zapisać klucza w przeglądarce, ale będzie działał do zamknięcia karty.',false)});
+$('#delKey').addEventListener('click',()=>{lsDel('tmdbKey');keyMem='';$('#key').value='';msg('#keyMsg','Klucz usunięty z tej przeglądarki.',false)});
+
+function fillSel(id,h,withNone,val){const s=$(id);s.innerHTML=(withNone?'<option value="-1">— brak —</option>':'')+h.map((x,i)=>`<option value="${i}">${esc(x||('kolumna '+(i+1)))}</option>`).join('');s.value=String(val)}
+function guessCols(h){const n=h.map(x=>norm(x)),find=(...res)=>{for(const re of res){const i=n.findIndex(x=>re.test(x));if(i>=0)return i}return -1};return {title:find(/^(name|title|tytul|film)$/,/tytul|title|name|film/),year:find(/^(year|rok)$/,/rok|year/),rating:find(/^(rating|ocena)$/,/twoja ocena|my rating|ocena|rating|score/)}}
+function rebuild(){wt=null;built=null;if(rows.length<2){msg('#csvMsg','Potrzebny jest nagłówek i co najmniej jeden wiersz.',true);return}
+const imdb=isIMDb(rows[0]);$('#mapRow').hidden=imdb;
+const entries=imdb?entriesIMDb(rows):entriesGeneric(rows,{title:+$('#cTitle').value,year:+$('#cYear').value,rating:+$('#cRate').value});
+built=buildUnits(entries);if(!built.units.length){msg('#csvMsg','Nie znaleziono ocenionych filmów ani seriali. Sprawdź wybór kolumn.',true);built=null;return}
+wt=weigh(built.units,Date.now());aff=genreAff(built.units);const s=built.stats,liked=built.units.filter(u=>u.w>=0.4).length;
+msg('#csvMsg',`${imdb?'Wykryto eksport IMDb. ':''}Wczytano ${s.movies.toLocaleString('pl-PL')} filmów i ${s.series.toLocaleString('pl-PL')} seriali${s.epCount?` (w tym ${s.epCount.toLocaleString('pl-PL')} ocenionych odcinków z ${s.epSeries} seriali)`:''}. Twoja średnia ocena: ${f1(wt.mu)}, odchylenie ${f1(wt.sd)}. Wyraźnie polubionych tytułów: ${liked.toLocaleString('pl-PL')}.`,false)}
+function loadText(t){rows=parseCSV(t);if(rows.length<2){built=null;msg('#csvMsg','Nie udało się odczytać danych. Pierwszy wiersz powinien zawierać nagłówki.',true);return}
+const h=rows[0];if(!isIMDb(h)){const g=guessCols(h);fillSel('#cTitle',h,false,g.title>=0?g.title:0);fillSel('#cYear',h,true,g.year);fillSel('#cRate',h,false,g.rating>=0?g.rating:Math.min(1,h.length-1))}rebuild()}
+$('#file').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{$('#csv').value='';$('#csv').placeholder='Wczytano plik: '+f.name;loadText(String(r.result))};r.readAsText(f)});
+$('#csv').addEventListener('input',()=>loadText($('#csv').value));
+['#cTitle','#cYear','#cRate'].forEach(id=>$(id).addEventListener('change',rebuild));
+$('#sample').addEventListener('click',()=>{const t='Name,Year,Rating\nThe Matrix,1999,9\nPulp Fiction,1994,8\nAmelie,2001,9\nThe Godfather,1972,10\nInception,2010,8\nLa La Land,2016,4\nTwilight,2008,2\nThe Wailing,2016,7';$('#csv').value=t;loadText(t)});
+
+const card=e=>{const m=e.m,why=e.src.sort((a,b)=>b.c-a.c).slice(0,3).map(s=>esc(s.t)).join(', ');
+const orig=m.original_title&&m.original_title!==m.title?esc(m.original_title)+' · ':'',gn=(m.genre_ids||[]).map(i=>GEN[i]&&GEN[i][0]).filter(Boolean).slice(0,3).join(', ');
+const ov=(m.overview||'').length>170?m.overview.slice(0,170).replace(/\s\S*$/,'')+'…':(m.overview||'');
+return `<article class="film">${m.poster_path?`<img class="poster" loading="lazy" alt="Plakat: ${esc(m.title)}" src="https://image.tmdb.org/t/p/w185${esc(m.poster_path)}">`:'<div class="poster" role="img" aria-label="Brak plakatu"></div>'}<div><h3>${esc(m.title)}</h3><div class="sub"><span class="badge">${m.type==='tv'?'Serial':'Film'}</span>${orig}${e.yr||''}${gn?' · '+esc(gn):''}</div><div class="sub">TMDB ${f1(m.vote_average||0)} (${(m.vote_count||0).toLocaleString('pl-PL')} głosów) · dopasowanie ${e.pct}%</div>${wt?`<div class="sub">Przewidywana ocena dla Ciebie: ~${f1(predRating(m.vote_average,e.aff,wt.off||0,wt.sd))}</div>`:''}${why?`<div class="why">Bo lubisz: ${why}</div>`:''}${ov?`<p>${esc(ov)}</p>`:''}<a href="https://www.themoviedb.org/${m.type}/${m.id}" target="_blank" rel="noopener">Zobacz w TMDB ↗</a></div></article>`};
+function render(){if(!built)return;const extra=new Set();$('#own').value.split(/\r?\n/).forEach(l=>{const n=norm(l);if(n)extra.add(n)});
+const seen={ids:seenIds,titles:built.seenT,names:built.seenN,extra};
+const list=rankCands(cands,seen,{types:{movie:$('#tMovie').checked,tv:$('#tTv').checked},minYear:+$('#fYear').value||0,minVotes:+$('#fVotes').value||0,minRate:+$('#fRate').value||0,genre:$('#fGenre').value,aff}).slice(0,30);
+$('#count').textContent=list.length?`Pokazano ${list.length} propozycji.`:'Brak propozycji spełniających filtry. Poluzuj filtry.';
+$('#out').innerHTML=list.map(card).join('');
+$('#live').textContent=$('#count').textContent}
+['#tMovie','#tTv','#fYear','#fVotes','#fRate','#fGenre'].forEach(id=>$(id).addEventListener('change',render));
+$('#own').addEventListener('input',render);
+
+$('#go').addEventListener('click',async()=>{
+if(!getKey()){msg('#status','Najpierw wklej klucz TMDB (krok 1).',true);return}
+if(!built){msg('#status','Najpierw wczytaj oceny (krok 2).',true);return}
+const src=selectSources(built.units,+$('#nSrc').value);if(!src.likes.length){msg('#status','Żaden tytuł nie wyróżnia się wysoką oceną. Oceń więcej filmów wyżej niż zwykle.',true);return}
+$('#go').disabled=true;$('#prog').hidden=false;$('#prog').value=0;$('#srcList').innerHTML='';msg('#status','Szukam…',false);
+try{const r=await recommend({sources:src,tmdb,onProgress:(d,n)=>{$('#prog').max=n;$('#prog').value=d;$('#status').innerHTML=`<p class="msg" role="status">Przetworzono ${d} z ${n} tytułów…</p>`}});
+cands=r.cands;seenIds=r.seenIds;$('#resBox').hidden=false;render();
+const nm=src.likes.filter(u=>u.kind==='movie').length,nt=src.likes.length-nm;
+msg('#status',`Gotowe: oparto się na ${src.likes.length} polubionych tytułach (${nm} filmów, ${nt} seriali) i ${src.dislikes.length} nielubianych. Znaleziono ${cands.length} kandydatów.${r.missed.length?' Nie znaleziono w TMDB: '+r.missed.slice(0,6).map(esc).join(', ')+(r.missed.length>6?' i '+(r.missed.length-6)+' innych':'')+'.':''}`,false);
+$('#srcList').innerHTML=`<details><summary>Pokaż tytuły źródłowe</summary><ul>${src.likes.map(u=>`<li>${esc(u.title)} (${u.kind==='tv'?'serial':'film'}, ocena ${f1(u.r)})</li>`).join('')}</ul></details>`}
+catch(e){const m=String(e.message||e);msg('#status',/\b(401|403)\b/.test(m)?'TMDB odrzucił klucz. Sprawdź, czy wkleiłeś go w całości.':/Brak klucza/.test(m)?m:'Nie udało się połączyć z TMDB. Sprawdź internet i spróbuj ponownie.',true)}
+finally{$('#go').disabled=false;$('#prog').hidden=true}});
+
+
+async function similar(){const q=$('#simQ').value.trim();if(!q){msg('#simMsg','Wpisz tytuł.',true);return}if(!getKey()){msg('#simMsg','Najpierw wklej klucz TMDB (krok 1).',true);return}
+$('#simGo').disabled=true;msg('#simMsg','Szukam…',false);
+try{const r=await tmdb('/search/multi',{query:q,language:'pl-PL'}),hit=(r.results||[]).find(x=>x.media_type==='movie'||x.media_type==='tv');
+if(!hit){msg('#simMsg','Nie znaleziono takiego tytułu w TMDB.',true);$('#simOut').innerHTML='';return}
+const type=hit.media_type,name=hit.title||hit.name,rec=await tmdb('/'+type+'/'+hit.id+'/recommendations',{language:'pl-PL'});
+const cs=(rec.results||[]).map((m,i)=>({m:normM(m,type),score:1.01-i/25,src:[{t:name,c:1}]}));
+const seen={ids:new Set([type+':'+hit.id]),titles:built?built.seenT:new Set(),names:built?built.seenN:new Set(),extra:new Set()};
+const list=rankCands(cs,seen,{types:{movie:true,tv:true},minYear:0,minVotes:50,minRate:0,genre:'',aff:built?aff:null}).slice(0,12);
+msg('#simMsg',list.length?`Podobne do: ${esc(name)} (${type==='tv'?'serial':'film'}).${built?' Pominięte są tytuły, które już oceniłeś.':''}`:'Brak propozycji (wszystko z listy już znasz albo TMDB nic nie zwróciło).',!list.length);
+$('#simOut').innerHTML=list.map(card).join('')}
+catch(e){const m=String(e.message||e);msg('#simMsg',/\b(401|403)\b/.test(m)?'TMDB odrzucił klucz.':'Nie udało się połączyć z TMDB.',true)}
+finally{$('#simGo').disabled=false}}
+$('#simGo').addEventListener('click',similar);
+$('#simQ').addEventListener('keydown',e=>{if(e.key==='Enter')similar()});
+
+const mq=matchMedia('(prefers-color-scheme: dark)');const setTheme=d=>{document.documentElement.dataset.theme=d?'dark':'light'};setTheme(mq.matches);mq.addEventListener('change',e=>setTheme(e.matches));
+$('#theme').addEventListener('click',()=>setTheme(document.documentElement.dataset.theme!=='dark'));
+</script>
+</body>
+</html>
