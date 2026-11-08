@@ -117,9 +117,10 @@ function isIMDb(h){const n=h.map(x=>x.trim());return n.includes('Const')&&n.incl
 function entriesIMDb(rows){const h=rows[0].map(x=>x.trim()),ix=n=>h.indexOf(n),c={imdb:ix('Const'),r:ix('Your Rating'),date:ix('Date Rated'),title:ix('Title'),orig:ix('Original Title'),type:ix('Title Type'),ir:ix('IMDb Rating'),year:ix('Year'),genres:ix('Genres')},out=[];
 for(let i=1;i<rows.length;i++){const r=rows[i],x=parseRating(r[c.r]);if(x==null||x<=0)continue;const y=parseInt(r[c.year],10),d=r[c.date]?Date.parse(r[c.date]):NaN;out.push({imdb:(r[c.imdb]||'').trim()||null,r:x,date:Number.isFinite(d)?d:null,title:(r[c.title]||'').trim(),orig:(r[c.orig]||'').trim(),type:(r[c.type]||'').trim(),year:Number.isFinite(y)?y:null,genres:(r[c.genres]||'').split(',').map(s=>s.trim()).filter(Boolean),ir:parseRating(r[c.ir])})}return out}
 function entriesGeneric(rows,map){const out=[];for(let i=1;i<rows.length;i++){const r=rows[i],t=(r[map.title]||'').trim(),x=parseRating(r[map.rating]);if(!t||x==null||x<=0)continue;const y=map.year>=0?parseInt(r[map.year],10):NaN;out.push({imdb:null,r:x,date:null,title:t,orig:t,type:'Movie',year:Number.isFinite(y)&&y>1800?y:null,genres:[],ir:null})}return out}
-function buildUnits(entries){const movies=[],series=new Map(),eps=new Map(),seenT=new Set(),seenN=new Set();
+function buildUnits(entries){const movies=[],series=new Map(),eps=new Map(),seenT=new Set(),seenN=new Set(),seenI=new Set();
 const isMovie=t=>t==='Movie'||t==='Video'||t==='TV Movie',isTv=t=>t==='TV Series'||t==='TV Mini Series';
 for(const e of entries){
+if(e.imdb&&e.type!=='TV Episode'&&e.type!=='Video Game')seenI.add(e.imdb);
 if(isMovie(e.type)){movies.push({kind:'movie',n:0,viaEp:false,...e});[e.title,e.orig].forEach(t=>{if(t)seenT.add(norm(t)+'|'+e.year)})}
 else if(isTv(e.type)){series.set(norm(e.title),{kind:'tv',n:0,viaEp:false,...e});[e.title,e.orig].forEach(t=>{if(t)seenN.add(norm(t))})}
 else if(e.type==='TV Episode'){const k=e.title.includes(': ')?e.title.split(': ')[0]:e.title,nk=norm(k);let g=eps.get(nk);if(!g){g={name:k,list:[]};eps.set(nk,g)}g.list.push(e);seenN.add(nk)}
@@ -128,7 +129,7 @@ const tv=[...series.values()];let epSeries=0,epCount=0;
 for(const [nk,g] of eps){epSeries++;epCount+=g.list.length;const mean=g.list.reduce((s,e)=>s+e.r,0)/g.list.length,last=Math.max(...g.list.map(e=>e.date||0)),s=series.get(nk);
 if(s){s.n=g.list.length;if(last&&(!s.date||last>s.date))s.date=last}
 else{const f=g.list[0];tv.push({kind:'tv',imdb:f.imdb,title:g.name,orig:g.name,type:'TV Series',year:f.year,r:mean,date:last||null,genres:f.genres,ir:null,n:g.list.length,viaEp:true})}}
-return {units:[...movies,...tv],seenT,seenN,stats:{movies:movies.length,series:tv.length,epSeries,epCount}}}
+return {units:[...movies,...tv],seenT,seenN,seenI,stats:{movies:movies.length,series:tv.length,epSeries,epCount}}}
 function weigh(units,now){const rs=units.map(u=>u.r),mu=rs.reduce((a,b)=>a+b,0)/rs.length,sd=Math.max(0.8,Math.sqrt(rs.reduce((s,v)=>s+(v-mu)**2,0)/rs.length));
 const dd=units.filter(u=>u.ir).map(u=>u.r-u.ir),off=dd.length?dd.reduce((a,b)=>a+b,0)/dd.length:0;
 units.forEach(u=>{let z=(u.r-mu)/sd;if(u.viaEp)z*=u.n/(u.n+2);const bonus=u.ir?0.35*clamp((u.r-u.ir)/1.5,-1,1):0,age=u.date?Math.max(0,(now-u.date)/3.15576e10):0,rec=0.6+0.4*Math.exp(-age/3);u.z=z;u.w=(z+bonus)*rec});return {mu,sd,off}}
@@ -183,7 +184,7 @@ function fillSel(id,h,withNone,val){const s=$(id);s.innerHTML=(withNone?'<option
 function guessCols(h){const n=h.map(x=>norm(x)),find=(...res)=>{for(const re of res){const i=n.findIndex(x=>re.test(x));if(i>=0)return i}return -1};return {title:find(/^(name|title|tytul|film)$/,/tytul|title|name|film/),year:find(/^(year|rok)$/,/rok|year/),rating:find(/^(rating|ocena)$/,/twoja ocena|my rating|ocena|rating|score/)}}
 function useEmbedded(){const P=window.PROFILE;cands=[];$('#resBox').hidden=true;$('#srcList').innerHTML='';
 if(!P){built=null;wt=null;msg('#profile','Brak wbudowanego profilu (plik profile.js). Użyj własnych ocen poniżej.',true);return}
-built={units:P.units,seenT:new Set(P.seenT),seenN:new Set(P.seenN),stats:P.stats};wt=P.wt;aff=P.aff;
+built={units:P.units,seenT:new Set(P.seenT),seenN:new Set(P.seenN),seenI:new Set(P.seenI||[]),stats:P.stats};wt=P.wt;aff=P.aff;
 msg('#profile',`Profil z moich ocen IMDb (stan na ${esc(P.date)}): ${P.stats.movies.toLocaleString('pl-PL')} filmów i ${P.stats.series.toLocaleString('pl-PL')} seriali, średnia ocena ${f1(P.wt.mu)}.`,false)}
 function rebuild(){wt=null;built=null;if(rows.length<2){msg('#csvMsg','Potrzebny jest nagłówek i co najmniej jeden wiersz.',true);return}
 const imdb=isIMDb(rows[0]);$('#mapRow').hidden=imdb;
@@ -202,11 +203,18 @@ $('#sample').addEventListener('click',()=>{const t='Name,Year,Rating\nThe Matrix
 const card=e=>{const m=e.m,why=e.src.sort((a,b)=>b.c-a.c).slice(0,3).map(s=>esc(s.t)).join(', ');
 const orig=m.original_title&&m.original_title!==m.title?esc(m.original_title)+' · ':'',gn=(m.genre_ids||[]).map(i=>GEN[i]&&GEN[i][0]).filter(Boolean).slice(0,3).join(', ');
 const ov=(m.overview||'').length>170?m.overview.slice(0,170).replace(/\s\S*$/,'')+'…':(m.overview||'');
-return `<article class="film">${m.poster_path?`<img class="poster" loading="lazy" alt="Plakat: ${esc(m.title)}" src="https://image.tmdb.org/t/p/w185${esc(m.poster_path)}">`:'<div class="poster" role="img" aria-label="Brak plakatu"></div>'}<div><h3>${esc(m.title)}</h3><div class="sub"><span class="badge">${m.type==='tv'?'Serial':'Film'}</span>${orig}${e.yr||''}${gn?' · '+esc(gn):''}</div><div class="sub">TMDB ${f1(m.vote_average||0)} (${(m.vote_count||0).toLocaleString('pl-PL')} głosów) · dopasowanie ${e.pct}%</div>${wt?`<div class="sub">Przewidywana moja ocena: ~${f1(predRating(m.vote_average,e.aff,wt.off||0,wt.sd))}</div>`:''}${why?`<div class="why">Podobne do tego, co lubię: ${why}</div>`:''}${ov?`<p>${esc(ov)}</p>`:''}<a href="https://www.themoviedb.org/${m.type}/${m.id}" target="_blank" rel="noopener">Zobacz w TMDB ↗</a></div></article>`};
-function render(){if(!built)return;const extra=new Set();$('#own').value.split(/\r?\n/).forEach(l=>{const n=norm(l);if(n)extra.add(n)});
+return `<article class="film">${m.poster_path?`<img class="poster" loading="lazy" alt="Plakat: ${esc(m.title)}" src="https://image.tmdb.org/t/p/w185${esc(m.poster_path)}">`:'<div class="poster" role="img" aria-label="Brak plakatu"></div>'}<div><h3>${esc(m.title)}</h3><div class="sub"><span class="badge">${m.type==='tv'?'Serial':'Film'}</span>${orig}${e.yr||''}${gn?' · '+esc(gn):''}</div><div class="sub">TMDB ${f1(m.vote_average||0)} (${(m.vote_count||0).toLocaleString('pl-PL')} głosów) · dopasowanie ${e.pct}%</div>${wt?`<div class="sub">Przewidywana moja ocena: ~${f1(predRating(m.vote_average,e.aff,wt.off||0,wt.sd))}</div>`:''}${why?`<div class="why">Podobne do tego, co lubię: ${why}</div>`:''}${ov?`<p>${esc(ov)}</p>`:''}<a href="${e.imdb?'https://www.imdb.com/title/'+esc(e.imdb)+'/':'https://www.imdb.com/find/?q='+encodeURIComponent(m.title+(e.yr?' '+e.yr:''))}" target="_blank" rel="noopener">Zobacz w IMDb ↗</a></div></article>`};
+const imdbCache=new Map();
+async function imdbOf(m){const k=m.type+':'+m.id;if(imdbCache.has(k))return imdbCache.get(k);let v=null;try{const r=await tmdb('/'+m.type+'/'+m.id+'/external_ids',{});v=r.imdb_id||null}catch(e){}imdbCache.set(k,v);return v}
+let renderTok=0;
+async function render(){if(!built)return;const tok=++renderTok,extra=new Set();$('#own').value.split(/\r?\n/).forEach(l=>{const n=norm(l);if(n)extra.add(n)});
 const seen={ids:seenIds,titles:built.seenT,names:built.seenN,extra};
-const list=rankCands(cands,seen,{types:{movie:$('#tMovie').checked,tv:$('#tTv').checked},minYear:+$('#fYear').value||0,minVotes:+$('#fVotes').value||0,minRate:+$('#fRate').value||0,genre:$('#fGenre').value,aff}).slice(0,30);
-$('#count').textContent=list.length?`Pokazano ${list.length} propozycji.`:'Brak propozycji spełniających filtry. Poluzuj filtry.';
+const ranked=rankCands(cands,seen,{types:{movie:$('#tMovie').checked,tv:$('#tTv').checked},minYear:+$('#fYear').value||0,minVotes:+$('#fVotes').value||0,minRate:+$('#fRate').value||0,genre:$('#fGenre').value,aff}).slice(0,50);
+$('#count').textContent='Sprawdzam w IMDb, czego jeszcze nie oceniłem…';
+await mapLimit(ranked,6,async e=>{e.imdb=await imdbOf(e.m)});
+if(tok!==renderTok)return;
+const sI=built.seenI||new Set(),list=ranked.filter(e=>!(e.imdb&&sI.has(e.imdb))).slice(0,30);
+$('#count').textContent=list.length?`Pokazano ${list.length} propozycji, których jeszcze nie oceniłem.`:'Brak propozycji spełniających filtry. Poluzuj filtry.';
 $('#out').innerHTML=list.map(card).join('');
 $('#live').textContent=$('#count').textContent}
 ['#tMovie','#tTv','#fYear','#fVotes','#fRate','#fGenre'].forEach(id=>$(id).addEventListener('change',render));
