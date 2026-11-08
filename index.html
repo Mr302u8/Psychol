@@ -3,72 +3,305 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Moje narzędzia</title>
-<meta name="description" content="Zbiór małych narzędzi działających w przeglądarce.">
+<title>Regresja – interaktywna wizualizacja</title>
 <style>
-:root{--bg:#fbfaf8;--card:#ffffff;--ink:#1c1c1a;--muted:#6b6a65;--line:#d9d7d0;--c1:#2a78d6;--accent:#1f4e79}
-:root[data-theme=dark]{--bg:#151514;--card:#1d1d1b;--ink:#f0efec;--muted:#a6a49c;--line:#343432;--c1:#3987e5;--accent:#8ab8ee}
+:root{--bg:#fbfaf8;--card:#ffffff;--ink:#1c1c1a;--muted:#6b6a65;--grid:#e8e6e0;--axis:#b3b1a8;--line:#d9d7d0;--c1:#2a78d6;--c2:#eb6834;--c3:#1baf7a;--bad:#c2312f;--accent:#1f4e79;--seg:#efede8;--warnbg:#fff4e0;--warn:#7a4a00}
+:root[data-theme=dark]{--bg:#151514;--card:#1d1d1b;--ink:#f0efec;--muted:#a6a49c;--grid:#2c2c2a;--axis:#4f4e48;--line:#343432;--c1:#3987e5;--c2:#e8703f;--c3:#25b585;--bad:#e66767;--accent:#8ab8ee;--seg:#272725;--warnbg:#3a2d12;--warn:#f0c987}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
-.wrap{max-width:900px;margin:0 auto;padding:28px 18px 48px}
-header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:6px}
-h1{font-size:26px;font-weight:600;margin:0}
-.lead{color:var(--muted);margin:0 0 24px}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+.wrap{max-width:1120px;margin:0 auto;padding:20px 18px 40px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+h1{font-size:22px;font-weight:600;margin:0}
 button{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:7px 14px;cursor:pointer}
-button:focus-visible,a:focus-visible{outline:2px solid var(--c1);outline-offset:2px}
-h2{font-size:14px;font-weight:600;color:var(--muted);margin:26px 0 10px;letter-spacing:.02em}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
-.tile{display:block;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;color:inherit;text-decoration:none}
-a.tile:hover{border-color:var(--c1)}
-.tile h3{font-size:17px;font-weight:600;margin:0 0 4px}
-.tile p{font-size:14px;color:var(--muted);margin:0}
-.soon{opacity:.6;border-style:dashed}
-.tag{display:inline-block;font-size:12px;color:var(--accent);margin-top:10px}
-footer{margin-top:40px;font-size:13px;color:var(--muted)}
+button:hover{border-color:var(--axis)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--c1);outline-offset:2px}
+.tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:14px;flex-wrap:wrap}
+.tabs button{border:0;border-bottom:3px solid transparent;border-radius:8px 8px 0 0;background:none;padding:9px 16px;color:var(--muted)}
+.tabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--c1);font-weight:600}
+.hint{color:var(--muted);margin:0 0 14px}
+.ctl{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+.main{display:flex;align-items:center;gap:14px}
+.main label{font-size:18px;color:var(--muted);white-space:nowrap}
+.main input[type=text]{width:84px;font:inherit;font-size:18px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);text-align:right}
+.main input[type=range]{flex:1;min-width:0}
+input[type=range]{accent-color:var(--c1)}
+.extras{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px 22px;margin-top:12px}
+.extras:empty{display:none}
+.sl{display:grid;grid-template-columns:1fr auto;align-items:center;font-size:13px;color:var(--muted)}
+.sl input{grid-column:1/3;width:100%}
+.sl output{color:var(--ink);font-weight:600}
+.chk{display:flex;gap:8px;align-items:center;font-size:14px}
+.tools{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.seg{display:inline-flex;background:var(--seg);border-radius:8px;padding:3px}
+.seg button{border:0;background:none;padding:6px 16px;border-radius:6px}
+.seg button[aria-pressed=true]{background:var(--accent);color:var(--card)}
+.layout{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:16px;align-items:start}
+@media(max-width:860px){.layout{grid-template-columns:1fr}.main{flex-wrap:wrap}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
+svg{display:block;width:100%;height:auto;touch-action:none;user-select:none;-webkit-user-select:none}
+svg.m-drag .pt{cursor:grab}svg.m-delete .pt{cursor:pointer}svg.m-add{cursor:crosshair}
+#panel{padding:16px}
+.big{font-size:24px;text-align:center}
+.sub{text-align:center;font-size:17px;margin-bottom:6px;color:var(--muted)}
+.eq{text-align:center;font-size:17px;margin:8px 0 6px;font-weight:600}
+table.st{width:100%;border-collapse:collapse;font-size:14px;margin-top:6px}
+table.st th{font-weight:400;color:var(--muted);text-align:left;padding:3px 6px 3px 0}
+table.st td{text-align:right;padding:3px 0;font-variant-numeric:tabular-nums}
+table.st thead th{font-size:12px;border-bottom:1px solid var(--line)}
+table.st thead th:not(:first-child){text-align:right}
+.warn{background:var(--warnbg);color:var(--warn);border-radius:8px;padding:8px 12px;font-size:13px;margin:8px 0}
+h3{font-size:14px;font-weight:600;margin:14px 0 4px}
+.avpbar{display:flex;gap:10px;align-items:center;margin:14px 0 8px;font-size:14px;color:var(--muted)}
+.note{font-size:12px;color:var(--muted);text-align:center;margin:2px 0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 </style>
 </head>
 <body>
 <div class="wrap">
-<header><h1>Moje narzędzia</h1><button id="theme" type="button">Motyw: jasny/ciemny</button></header>
-<p class="lead">Małe narzędzia, które działają w przeglądarce. Nic nie jest nigdzie wysyłane.</p>
-
-<h2>Szkoła i statystyka</h2>
-<div class="grid">
-<a class="tile" href="regresja/">
-<h3>Regresja</h3>
-<p>Interaktywna wizualizacja regresji prostej, wielokrotnej i logistycznej z suwakami i przeciąganiem punktów.</p>
-<span class="tag">Otwórz →</span>
-</a>
-<a class="tile" href="mediacja/">
-<h3>Mediacja</h3>
-<p>Ścieżki a, b i c′, efekt pośredni, test Sobela i bootstrap. Zobacz, jak efekt całkowity dzieli się na bezpośredni i pośredni.</p>
-<span class="tag">Otwórz →</span>
-</a>
-<a class="tile" href="moderacja/">
-<h3>Moderacja</h3>
-<p>Interakcja X × W, proste nachylenia dla niskiego, średniego i wysokiego moderatora oraz obszar istotności Johnsona–Neymana.</p>
-<span class="tag">Otwórz →</span>
-</a>
+<header><h1>Regresja – zobacz, jak działa</h1><div style="display:flex;gap:10px;align-items:center"><a href="../" style="color:var(--accent);text-decoration:none;font-size:14px">← Wszystkie narzędzia</a><button id="theme" type="button">Motyw: jasny/ciemny</button></div></header>
+<div class="tabs" role="tablist" aria-label="Typ regresji">
+<button role="tab" type="button" data-tab="s1" aria-selected="true">Regresja prosta</button>
+<button role="tab" type="button" data-tab="s2" aria-selected="false">Regresja wielokrotna</button>
+<button role="tab" type="button" data-tab="s3" aria-selected="false">Regresja logistyczna</button>
 </div>
-
-<h2>Zdjęcia</h2>
-<div class="grid">
-<div class="tile soon">
-<h3>Wkrótce</h3>
-<p>Miejsce na narzędzia do zdjęć.</p>
+<p class="hint" id="hint"></p>
+<section class="ctl" aria-label="Parametry">
+<div class="main"><label id="mainLabel" for="mainNum"></label><input id="mainNum" type="text" inputmode="decimal" aria-describedby="mainLabel"><input id="mainRange" type="range" aria-label="Suwak główny"></div>
+<div class="extras" id="extras"></div>
+<div class="tools">
+<div class="seg" role="group" aria-label="Tryb edycji punktów">
+<button type="button" data-mode="drag" aria-pressed="true">Przeciągaj</button>
+<button type="button" data-mode="add" aria-pressed="false">Dodaj</button>
+<button type="button" data-mode="delete" aria-pressed="false">Usuń</button>
+</div>
+<button type="button" id="reset">Reset</button>
+<button type="button" id="png">Eksport PNG</button>
+</div>
+</section>
+<div class="layout">
+<div>
+<div class="card"><svg id="plot" role="img" aria-label="Wykres rozrzutu z dopasowanym modelem"></svg></div>
+<div id="avpWrap" hidden>
+<div class="avpbar"><span>Wykres cząstkowy dla:</span>
+<div class="seg" role="group" aria-label="Predyktor wykresu cząstkowego">
+<button type="button" data-avp="1" aria-pressed="true">x1</button>
+<button type="button" data-avp="2" aria-pressed="false">x2</button>
+</div></div>
+<div class="card"><svg id="avp" role="img" aria-label="Wykres cząstkowy (added-variable plot)"></svg></div>
 </div>
 </div>
-
-<footer>Dodajesz nowe narzędzie: nowy folder z plikiem index.html i kafelek w tym pliku.</footer>
+<aside class="card" id="panel" aria-label="Statystyki modelu"></aside>
+</div>
+<div id="live" class="sr" aria-live="polite"></div>
 </div>
 <script>
-(function(){
-var mq=matchMedia('(prefers-color-scheme: dark)');
-function set(d){document.documentElement.dataset.theme=d?'dark':'light'}
-set(mq.matches);
-mq.addEventListener('change',function(e){set(e.matches)});
-document.getElementById('theme').addEventListener('click',function(){set(document.documentElement.dataset.theme!=='dark')});
-})();
+'use strict';
+//#STATS-START
+const mean=a=>a.reduce((s,v)=>s+v,0)/a.length;
+const sdev=a=>{const m=mean(a);return Math.sqrt(a.reduce((s,v)=>s+(v-m)**2,0)/(a.length-1))};
+function pearson(a,b){const ma=mean(a),mb=mean(b);let sab=0,saa=0,sbb=0;for(let i=0;i<a.length;i++){const x=a[i]-ma,y=b[i]-mb;sab+=x*y;saa+=x*x;sbb+=y*y}return sab/Math.sqrt(saa*sbb)}
+function lgamma(x){const c=[76.18009172947146,-86.50532032941677,24.01409824083091,-1.231739572450155,0.1208650973866179e-2,-0.5395239384953e-5];let y=x,t=x+5.5;t-=(x+0.5)*Math.log(t);let s=1.000000000190015;for(let j=0;j<6;j++){y++;s+=c[j]/y}return -t+Math.log(2.5066282746310005*s/x)}
+function betacf(a,b,x){const FP=1e-300,qab=a+b,qap=a+1,qam=a-1;let c=1,d=1-qab*x/qap;if(Math.abs(d)<FP)d=FP;d=1/d;let h=d;for(let m=1;m<=300;m++){const m2=2*m;let aa=m*(b-m)*x/((qam+m2)*(a+m2));d=1+aa*d;if(Math.abs(d)<FP)d=FP;c=1+aa/c;if(Math.abs(c)<FP)c=FP;d=1/d;h*=d*c;aa=-(a+m)*(qab+m)*x/((a+m2)*(qap+m2));d=1+aa*d;if(Math.abs(d)<FP)d=FP;c=1+aa/c;if(Math.abs(c)<FP)c=FP;d=1/d;const del=d*c;h*=del;if(Math.abs(del-1)<3e-12)break}return h}
+function ibeta(x,a,b){if(!(x>0))return 0;if(x>=1)return 1;const bt=Math.exp(lgamma(a+b)-lgamma(a)-lgamma(b)+a*Math.log(x)+b*Math.log(1-x));return x<(a+1)/(a+b+2)?bt*betacf(a,b,x)/a:1-bt*betacf(b,a,1-x)/b}
+const pT=(t,df)=>ibeta(df/(df+t*t),df/2,0.5);
+const pF=(F,d1,d2)=>ibeta(d2/(d2+d1*F),d2/2,d1/2);
+function tcrit(df){let lo=0,hi=400;for(let i=0;i<80;i++){const m=(lo+hi)/2;if(pT(m,df)>0.05)lo=m;else hi=m}return (lo+hi)/2}
+function erf(x){const s=Math.sign(x);x=Math.abs(x);const t=1/(1+0.3275911*x);return s*(1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x))}
+const pZ=z=>1-erf(Math.abs(z)/Math.SQRT2);
+function inv(M){const n=M.length;let big=0;M.forEach(r=>r.forEach(v=>big=Math.max(big,Math.abs(v))));const A=M.map((r,i)=>[...r,...Array.from({length:n},(_,j)=>+(i===j))]);for(let i=0;i<n;i++){let p=i;for(let k=i+1;k<n;k++)if(Math.abs(A[k][i])>Math.abs(A[p][i]))p=k;if(Math.abs(A[p][i])<1e-11*big)return null;[A[i],A[p]]=[A[p],A[i]];const d=A[i][i];for(let j=0;j<2*n;j++)A[i][j]/=d;for(let k=0;k<n;k++)if(k!==i){const f=A[k][i];if(f)for(let j=0;j<2*n;j++)A[k][j]-=f*A[i][j]}}return A.map(r=>r.slice(n))}
+function ols(X,y){const n=X.length,p=X[0].length;if(n-p<1)return null;const A=Array.from({length:p},()=>new Array(p).fill(0)),b=new Array(p).fill(0);for(let i=0;i<n;i++)for(let a=0;a<p;a++){b[a]+=X[i][a]*y[i];for(let c=0;c<p;c++)A[a][c]+=X[i][a]*X[i][c]}const I=inv(A);if(!I)return null;const beta=I.map(r=>r.reduce((s,v,j)=>s+v*b[j],0));const fit=X.map(r=>r.reduce((s,v,j)=>s+v*beta[j],0));const res=y.map((v,i)=>v-fit[i]);const sse=res.reduce((s,v)=>s+v*v,0),ym=mean(y),sst=y.reduce((s,v)=>s+(v-ym)**2,0);const dof=n-p,s2=sse/dof;const se=beta.map((_,k)=>Math.sqrt(Math.max(0,s2*I[k][k])));const r2=sst>0?1-sse/sst:0,adj=1-(1-r2)*(n-1)/dof;const t=beta.map((v,k)=>v/se[k]);const pv=t.map(v=>pT(v,dof));const F=(r2/(p-1))/((1-r2)/dof);return {beta,se,fit,res,r2,adj,dof,t,pv,F,pf:pF(F,p-1,dof),sse,sst}}
+const sig=z=>1/(1+Math.exp(-Math.max(-35,Math.min(35,z))));
+function logit(xs,ys){const n=xs.length;let b0=0,b1=0,conv=false;for(let it=0;it<80;it++){let a=1e-6,b=0,d=1e-6,g0=0,g1=0;for(let i=0;i<n;i++){const eta=b0+b1*xs[i],mu=sig(eta),w=Math.max(mu*(1-mu),1e-9),z=eta+(ys[i]-mu)/w;a+=w;b+=w*xs[i];d+=w*xs[i]*xs[i];g0+=w*z;g1+=w*xs[i]*z}const det=a*d-b*b;if(Math.abs(det)<1e-14)return null;const nb0=(d*g0-b*g1)/det,nb1=(-b*g0+a*g1)/det;const dl=Math.max(Math.abs(nb0-b0),Math.abs(nb1-b1));b0=nb0;b1=nb1;if(dl<1e-9){conv=true;break}if(Math.abs(b1)>40)break}let a=0,b=0,d=0,ll=0;const probs=[];for(let i=0;i<n;i++){const mu=sig(b0+b1*xs[i]),w=mu*(1-mu);probs.push(mu);a+=w;b+=w*xs[i];d+=w*xs[i]*xs[i];ll+=ys[i]?Math.log(Math.max(mu,1e-300)):Math.log(Math.max(1-mu,1e-300))}const det=a*d-b*b;const yb=mean(ys),ll0=n*(yb*Math.log(yb)+(1-yb)*Math.log(1-yb));const se0=Math.sqrt(Math.abs(d/det)),se1=Math.sqrt(Math.abs(a/det));return {b0,b1,se0,se1,ll,ll0,mcf:1-ll/ll0,sep:ll>-1e-3||Math.abs(b1)>=40,conv,probs,z1:b1/se1,p1:pZ(b1/se1)}}
+function roc(sc,lab){const idx=sc.map((_,i)=>i).sort((i,j)=>sc[j]-sc[i]);const P=lab.reduce((s,v)=>s+v,0),N=lab.length-P;let tp=0,fp=0;const pts=[[0,0]];for(let k=0;k<idx.length;k++){if(lab[idx[k]])tp++;else fp++;if(k===idx.length-1||sc[idx[k+1]]!==sc[idx[k]])pts.push([fp/N,tp/P])}let auc=0;for(let k=1;k<pts.length;k++)auc+=(pts[k][0]-pts[k-1][0])*(pts[k][1]+pts[k-1][1])/2;return {pts,auc}}
+function lensFrac(d,R){if(d>=2*R)return 0;if(d<=0)return 1;return (2*R*R*Math.acos(d/(2*R))-(d/2)*Math.sqrt(4*R*R-d*d))/(Math.PI*R*R)}
+function distFor(f,R){f=Math.max(0,Math.min(1,f));let lo=0,hi=2*R;for(let i=0;i<50;i++){const m=(lo+hi)/2;if(lensFrac(m,R)>f)lo=m;else hi=m}return (lo+hi)/2}
+function stdz(v){const m=mean(v),s=sdev(v);return v.map(x=>(x-m)/s)}
+function orth(v,basis){const m=mean(v);let r=v.map(x=>x-m);for(const b of basis){const c=r.reduce((s,x,i)=>s+x*b[i],0)/(r.length-1);r=r.map((x,i)=>x-c*b[i])}return stdz(r)}
+//#STATS-END
+
+const f2=(v,d=2)=>Number.isFinite(v)?v.toLocaleString('pl-PL',{minimumFractionDigits:d,maximumFractionDigits:d}):'–';
+const fp=p=>!Number.isFinite(p)?'–':p<0.001?'< 0,001':f2(p,3);
+const cl=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+const $=s=>document.querySelector(s);
+const sgn=v=>v<0?'−':'+';
+function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const R=rng(20261107);
+const gauss=()=>{let u=0;while(!u)u=R();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*R())};
+const arr=(n,f)=>Array.from({length:n},f);
+const B={a:arr(400,gauss),b:arr(400,gauss),m1:arr(400,gauss),m2:arr(400,gauss),m3:arr(400,gauss),lz:arr(400,gauss),lu:arr(400,R),lj:arr(400,R)};
+const DOM=[40,160];
+
+function ticks(lo,hi,n){const raw=(hi-lo)/n,e=Math.pow(10,Math.floor(Math.log10(raw))),f=raw/e,s=(f<1.5?1:f<3?2:f<7?5:10)*e;const out=[];for(let v=Math.ceil(lo/s-1e-9)*s;v<=hi+1e-9;v+=s)out.push(Math.round(v/s)*s);return out}
+function frame(W,H,m,dx,dy,xl,yl,o={}){
+const sx=v=>m.l+(v-dx[0])/(dx[1]-dx[0])*(W-m.l-m.r),sy=v=>H-m.b-(v-dy[0])/(dy[1]-dy[0])*(H-m.t-m.b);
+const ix=p=>dx[0]+(p-m.l)/(W-m.l-m.r)*(dx[1]-dx[0]),iy=p=>dy[0]+(H-m.b-p)/(H-m.t-m.b)*(dy[1]-dy[0]);
+const tx=o.tx||ticks(dx[0],dx[1],7),ty=o.ty||ticks(dy[0],dy[1],7),fm=o.fy||(v=>f2(v,Math.abs(v)<10&&v%1?1:0));
+let s='';
+ty.forEach(v=>{s+=`<line x1="${m.l}" x2="${W-m.r}" y1="${sy(v).toFixed(1)}" y2="${sy(v).toFixed(1)}" style="stroke:var(--grid)"/><text x="${m.l-8}" y="${(sy(v)+4).toFixed(1)}" text-anchor="end" style="fill:var(--muted);font-size:12px">${fm(v)}</text>`});
+tx.forEach(v=>{s+=`<text x="${sx(v).toFixed(1)}" y="${H-m.b+18}" text-anchor="middle" style="fill:var(--muted);font-size:12px">${f2(v,Math.abs(v)<10&&v%1?1:0)}</text>`});
+s+=`<line x1="${m.l}" x2="${W-m.r}" y1="${H-m.b}" y2="${H-m.b}" style="stroke:var(--axis)"/><line x1="${m.l}" x2="${m.l}" y1="${m.t}" y2="${H-m.b}" style="stroke:var(--axis)"/>`;
+s+=`<text x="${(m.l+W-m.r)/2}" y="${H-8}" text-anchor="middle" style="fill:var(--ink);font-size:14px">${xl}</text>`;
+s+=`<text transform="translate(16 ${(m.t+H-m.b)/2}) rotate(-90)" text-anchor="middle" style="fill:var(--ink);font-size:14px">${yl}</text>`;
+s+=`<clipPath id="${o.cid||'clp'}"><rect x="${m.l}" y="${m.t}" width="${W-m.l-m.r}" height="${H-m.t-m.b}"/></clipPath>`;
+return {sx,sy,ix,iy,s,m,W,H}}
+const pt=(x,y,i,c,ex='')=>`<circle class="pt" data-i="${i}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="6.5" style="fill:var(${c});fill-opacity:.55;stroke:var(${c});stroke-width:1.6;${ex}"/>`;
+const txt=(x,y,s,st='')=>`<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" style="fill:var(--ink);font-size:14px;${st}">${s}</text>`;
+const row=(k,v)=>`<tr><th scope="row">${k}</th><td>${v}</td></tr>`;
+const warn=m=>`<p class="warn" role="status">${m}</p>`;
+const svgPt=(svg,e)=>{const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse())};
+
+function venn2(f){const Rr=62,d=distFor(f,Rr),cx=140,cy=84,xl=cx-d/2,xr=cx+d/2;
+let s=`<svg viewBox="0 0 280 170" role="img" aria-label="Diagram Venna: wspólna wariancja x i y wynosi ${Math.round(f*100)}%"><clipPath id="cpx"><circle cx="${xl}" cy="${cy}" r="${Rr}"/></clipPath>`;
+s+=`<circle cx="${xl}" cy="${cy}" r="${Rr}" style="fill:var(--c1);fill-opacity:.4;stroke:var(--c1);stroke-width:1.5"/><circle cx="${xr}" cy="${cy}" r="${Rr}" style="fill:var(--c2);fill-opacity:.4;stroke:var(--c2);stroke-width:1.5"/>`;
+s+=`<circle cx="${xr}" cy="${cy}" r="${Rr}" clip-path="url(#cpx)" style="fill:var(--ink);fill-opacity:.35"/>`;
+s+=txt(xl-Rr*0.45,cy+5,'x','font-weight:600')+txt(xr+Rr*0.45,cy+5,'y','font-weight:600');
+if(f>=0.1)s+=txt(cx,cy+5,Math.round(f*100)+'%','font-weight:600');
+return s+`</svg>`}
+
+function venn3(r1y,r2y,r12){const Rr=50,W=280,H=215;
+const dy1=Math.max(8,distFor(r1y*r1y,Rr)),dy2=Math.max(8,distFor(r2y*r2y,Rr)),d12=Math.max(8,distFor(r12*r12,Rr));
+const xa=(dy2*dy2-d12*d12+dy1*dy1)/(2*dy1),ya2=dy2*dy2-xa*xa,ya=ya2>0?Math.sqrt(ya2):0;
+const P=[[0,0],[dy1,0],[xa,ya]],cx=(P[0][0]+P[1][0]+P[2][0])/3,cy=(P[0][1]+P[1][1]+P[2][1])/3;
+const Q=P.map(p=>[W/2+p[0]-cx,H/2+p[1]-cy]),C=['--c1','--c2','--c3'],L=['y','x1','x2'];
+let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Diagram Venna trzech zmiennych: y, x1, x2; powierzchnie przybliżone">`;
+Q.forEach((q,i)=>s+=`<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${Rr}" style="fill:var(${C[i]});fill-opacity:.38;stroke:var(${C[i]});stroke-width:1.5"/>`);
+Q.forEach((q,i)=>{const vx=q[0]-W/2,vy=q[1]-H/2,l=Math.hypot(vx,vy)||1,ox=vx/l*Rr*0.55,oy=(l<1?-1:vy/l)*Rr*0.55;s+=txt(q[0]+ox,q[1]+oy+5,L[i],'font-weight:600')});
+return s+`</svg><p class="note">Powierzchnie kół są przybliżone.</p>`}
+
+function resid1(y,xo){const o=ols(xo.map(v=>[1,v]),y);return o?o.res:null}
+function aria(t){$('#live').textContent=t}
+
+const S1={key:'s1',hint:'Przesuń suwak albo przeciągnij punkty. Zobacz, jak pojedynczy punkt odstający zmienia r i nachylenie prostej.',
+main:{label:'Korelacja r',min:-1,max:1,step:0.01,value:0.69,d:2},
+extras:[{type:'check',id:'resid',label:'Pokaż reszty',value:false}],n:50,pts:[],resid:false,
+regen(){const r=cl(mainVal(),-1,1),n=this.n,zx=stdz(B.a.slice(0,n)),ze=orth(B.b.slice(0,n),[zx]),k=Math.sqrt(1-r*r);this.pts=zx.map((z,i)=>({x:100+15*z,y:100+15*(r*z+k*ze[i])}))},
+stats(){const xs=this.pts.map(p=>p.x),ys=this.pts.map(p=>p.y),n=xs.length;if(n<5)return {err:'Za mało punktów (n < 5) – model nie jest liczony.'};const sx=sdev(xs),sy=sdev(ys);if(!(sx>1e-9&&sy>1e-9))return {err:'Zerowa wariancja x lub y – model nie jest liczony.'};const r=pearson(xs,ys),b=r*sy/sx,mx=mean(xs),my=mean(ys),t=r*Math.sqrt((n-2)/Math.max(1e-12,1-r*r));return {n,r,r2:r*r,a:my-b*mx,b,mx,my,sx,sy,p:pT(t,n-2)}},
+drag(i,x,y){this.pts[i]={x:cl(x,DOM[0],DOM[1]),y:cl(y,DOM[0],DOM[1])}},
+add(x,y){this.pts.push({x:cl(x,DOM[0],DOM[1]),y:cl(y,DOM[0],DOM[1])})},
+del(i){if(this.pts.length>6)this.pts.splice(i,1)},
+sync(){this.n=this.pts.length;const s=this.stats();if(!s.err)setMain(s.r)},
+onCheck(id,v){this.resid=v},
+render(){const W=640,H=460,m={l:58,r:16,t:16,b:50},f=frame(W,H,m,DOM,DOM,'x','y');this.fr=f;const st=this.stats();let g=f.s;
+if(!st.err){if(this.resid)this.pts.forEach(p=>{g+=`<line x1="${f.sx(p.x).toFixed(1)}" x2="${f.sx(p.x).toFixed(1)}" y1="${f.sy(p.y).toFixed(1)}" y2="${f.sy(st.a+st.b*p.x).toFixed(1)}" style="stroke:var(--c2);stroke-width:1.2"/>`});
+g+=`<g clip-path="url(#clp)"><line x1="${f.sx(DOM[0])}" y1="${f.sy(st.a+st.b*DOM[0]).toFixed(1)}" x2="${f.sx(DOM[1])}" y2="${f.sy(st.a+st.b*DOM[1]).toFixed(1)}" style="stroke:var(--ink);stroke-width:2.2"/></g>`}
+this.pts.forEach((p,i)=>g+=pt(f.sx(p.x),f.sy(p.y),i,'--c1'));
+$('#plot').setAttribute('viewBox',`0 0 ${W} ${H}`);$('#plot').innerHTML=g;
+let h;if(st.err)h=warn(st.err)+`<p class="note">n = ${this.pts.length}</p>`;
+else h=`<div class="big">Korelacja: <b>${f2(st.r)}</b></div><div class="sub">Wspólna wariancja: ${Math.round(st.r2*100)}%</div>${venn2(st.r2)}<div class="eq">y = ${f2(st.a)} ${sgn(st.b)} ${f2(Math.abs(st.b))}·x</div><table class="st">${row('R²',f2(st.r2))}${row('p-value (nachylenie)',fp(st.p))}${row('Średnia(x)',f2(st.mx))}${row('Średnia(y)',f2(st.my))}${row('SD(x)',f2(st.sx))}${row('SD(y)',f2(st.sy))}${row('n',st.n)}</table>`;
+$('#panel').innerHTML=h;
+aria(st.err?st.err:`Regresja prosta: r = ${f2(st.r)}, R² = ${f2(st.r2)}, n = ${st.n}.`)}};
+
+const S2={key:'s2',hint:'Zwiększ korelację x1–x2 i obserwuj, jak współczynniki tracą precyzję (VIF rośnie), choć R² prawie się nie zmienia.',
+main:{label:'Korelacja x1–y',min:-0.95,max:0.95,step:0.01,value:0.5,d:2},
+extras:[{id:'r2y',label:'Korelacja x2–y',min:-0.95,max:0.95,step:0.01,value:0.4,d:2},{id:'r12',label:'Korelacja x1–x2 (współliniowość)',min:-0.95,max:0.95,step:0.01,value:0.3,d:2}],
+n:60,pts:[],avp:1,clamped:false,
+regen(){const n=this.n,a0=mainVal(),b0=ctl('r2y'),rho=ctl('r12'),z1=stdz(B.m1.slice(0,n)),z2=orth(B.m2.slice(0,n),[z1]),z3=orth(B.m3.slice(0,n),[z1,z2]),q=Math.sqrt(1-rho*rho);
+let a=a0,b=(b0-rho*a0)/q;this.clamped=false;const ss=a*a+b*b;if(ss>0.98){const k=Math.sqrt(0.98/ss);a*=k;b*=k;this.clamped=true}
+const c=Math.sqrt(1-a*a-b*b);this.pts=z1.map((v,i)=>({x1:100+15*v,x2:100+15*(rho*v+q*z2[i]),y:100+15*(a*v+b*z2[i]+c*z3[i])}))},
+stats(){const P=this.pts,n=P.length;if(n<5)return {err:'Za mało punktów (n < 5) – model nie jest liczony.'};const x1=P.map(p=>p.x1),x2=P.map(p=>p.x2),y=P.map(p=>p.y);
+const fit=ols(P.map(p=>[1,p.x1,p.x2]),y);if(!fit)return {err:'Macierz osobliwa (predyktory zbyt silnie skorelowane) – model nie jest liczony.'};
+const r1=pearson(x1,y),r2=pearson(x2,y),r12=pearson(x1,x2),s1=sdev(x1),s2=sdev(x2),sy=sdev(y),tc=tcrit(fit.dof);
+const sc=[s1/sy,s2/sy];const bs=[fit.beta[1]*sc[0],fit.beta[2]*sc[1]];
+return {n,fit,r1,r2,r12,x1,x2,y,bs,tc,vif:1/(1-r12*r12),sr1:fit.r2-r2*r2,sr2:fit.r2-r1*r1,sc}},
+drag(i,x,y){this.pts[i].y=cl(y,DOM[0],DOM[1])},
+add(px,py){const st=this.stats();let x2=cl(100+15*gauss(),DOM[0],DOM[1]),x1=cl(100+15*gauss(),DOM[0],DOM[1]);if(!st.err&&Math.abs(st.fit.beta[1])>0.05)x1=cl((px-st.fit.beta[0]-st.fit.beta[2]*x2)/st.fit.beta[1],DOM[0],DOM[1]);this.pts.push({x1,x2,y:cl(py,DOM[0],DOM[1])})},
+del(i){if(this.pts.length>6)this.pts.splice(i,1)},
+sync(){this.n=this.pts.length;const s=this.stats();if(!s.err){setMain(s.r1);setX('r2y',s.r2);setX('r12',s.r12)}},
+onCheck(){},
+render(){const st=this.stats(),W=640,H=400,m={l:58,r:16,t:16,b:50},f=frame(W,H,m,DOM,DOM,'przewidziane ŷ','rzeczywiste y');this.fr=f;let g=f.s;
+$('#avpWrap').hidden=false;
+if(!st.err){g+=`<g clip-path="url(#clp)"><line x1="${f.sx(DOM[0])}" y1="${f.sy(DOM[0])}" x2="${f.sx(DOM[1])}" y2="${f.sy(DOM[1])}" style="stroke:var(--ink);stroke-width:2.2"/></g>`;
+this.pts.forEach((p,i)=>{const yh=st.fit.fit[i];g+=`<line x1="${f.sx(yh).toFixed(1)}" x2="${f.sx(yh).toFixed(1)}" y1="${f.sy(p.y).toFixed(1)}" y2="${f.sy(yh).toFixed(1)}" style="stroke:var(--c2);stroke-width:1.2"/>`});
+this.pts.forEach((p,i)=>g+=pt(f.sx(st.fit.fit[i]),f.sy(p.y),i,'--c1'));
+g+=txt(m.l+120,m.t+18,'Przeciągaj punkty w pionie (zmieniasz y)','font-size:12px;fill:var(--muted)')}
+$('#plot').setAttribute('viewBox',`0 0 ${W} ${H}`);$('#plot').innerHTML=g;
+let h='';if(this.clamped)h+=warn('Taka kombinacja korelacji jest niemożliwa – wartości przycięto do najbliższej dopuszczalnej.');
+if(st.err){h+=warn(st.err)+`<p class="note">n = ${this.pts.length}</p>`;$('#avp').innerHTML='';$('#panel').innerHTML=h;aria(st.err);return}
+const F=st.fit,ci=(k)=>{const e=st.tc*F.se[k];return `${f2(F.beta[k])} [${f2(F.beta[k]-e)}; ${f2(F.beta[k]+e)}]`},cis=(k)=>{const e=st.tc*F.se[k]*st.sc[k-1];return `${f2(st.bs[k-1])} [${f2(st.bs[k-1]-e)}; ${f2(st.bs[k-1]+e)}]`};
+const shared=F.r2-st.sr1-st.sr2;
+h+=venn3(st.r1,st.r2,st.r12)+`<table class="st">${row('R²',f2(F.r2))}${row('R² skorygowane',f2(F.adj))}${row(`F(2; ${F.dof})`,f2(F.F))}${row('p (test F)',fp(F.pf))}${row('n',st.n)}</table>`;
+h+=`<h3>Współczynniki</h3><table class="st"><thead><tr><th></th><th>b [95% CI]</th><th>p</th></tr></thead><tbody><tr><th scope="row">x1</th><td>${ci(1)}</td><td>${fp(F.pv[1])}</td></tr><tr><th scope="row">x2</th><td>${ci(2)}</td><td>${fp(F.pv[2])}</td></tr></tbody></table>`;
+h+=`<table class="st"><thead><tr><th></th><th>β standaryzowane [95% CI]</th></tr></thead><tbody><tr><th scope="row">x1</th><td>${cis(1)}</td></tr><tr><th scope="row">x2</th><td>${cis(2)}</td></tr></tbody></table>`;
+h+=`<h3>Podział wyjaśnionej wariancji</h3><table class="st">${row('Unikalnie x1 (sr²)',f2(st.sr1))}${row('Unikalnie x2 (sr²)',f2(st.sr2))}${row('Wspólnie x1 i x2',f2(shared))}${row('VIF',f2(st.vif))}</table>`;
+if(shared<-0.005)h+=`<p class="note">Wartość wspólna ujemna oznacza supresję: predyktory nawzajem wzmacniają swój wkład.</p>`;
+$('#panel').innerHTML=h;
+const k=this.avp,xo=k===1?st.x2:st.x1,xk=k===1?st.x1:st.x2,ry=resid1(st.y,xo),rx=resid1(xk,xo);
+if(ry&&rx){const W2=640,H2=300,m2={l:58,r:16,t:16,b:50},ex=(a)=>{const lo=Math.min(...a),hi=Math.max(...a),p=(hi-lo)*0.1||1;return [lo-p,hi+p]},f2b=frame(W2,H2,m2,ex(rx),ex(ry),`reszty x${k} | x${3-k}`,`reszty y | x${3-k}`,{cid:'clpa'});
+const bk=F.beta[k],lo=ex(rx);let a=f2b.s;a+=`<g clip-path="url(#clpa)"><line x1="${f2b.sx(lo[0]).toFixed(1)}" y1="${f2b.sy(bk*lo[0]).toFixed(1)}" x2="${f2b.sx(lo[1]).toFixed(1)}" y2="${f2b.sy(bk*lo[1]).toFixed(1)}" style="stroke:var(--ink);stroke-width:2.2"/></g>`;
+rx.forEach((v,i)=>a+=`<circle cx="${f2b.sx(v).toFixed(1)}" cy="${f2b.sy(ry[i]).toFixed(1)}" r="5" style="fill:var(--c1);fill-opacity:.55;stroke:var(--c1);stroke-width:1.4"/>`);
+a+=txt(m2.l+70,m2.t+18,`nachylenie = ${f2(bk)}`,'font-size:13px');
+$('#avp').setAttribute('viewBox',`0 0 ${W2} ${H2}`);$('#avp').innerHTML=a}
+aria(`Regresja wielokrotna: R² = ${f2(F.r2)}, b x1 = ${f2(F.beta[1])}, b x2 = ${f2(F.beta[2])}, VIF = ${f2(st.vif)}.`)}};
+
+const S3={key:'s3',hint:'Przeciągnij punkt przez próg i zobacz, jak krzywa logistyczna, krzywa ROC i macierz pomyłek reagują na zmianę danych.',
+main:{label:'Siła związku (β na 1 SD x)',min:-4,max:4,step:0.1,value:1.5,d:1},
+extras:[{id:'x0',label:'Punkt przegięcia (x, gdzie P = 0,5)',min:70,max:130,step:1,value:100,d:0},{id:'n',label:'Liczba obserwacji n',min:6,max:200,step:1,value:80,d:0},{id:'thr',label:'Próg klasyfikacji',min:0.05,max:0.95,step:0.01,value:0.5,d:2}],
+pts:[],
+regen(){const n=Math.round(ctl('n')),s=mainVal(),x0=ctl('x0');this.pts=[];for(let i=0;i<n;i++){const x=cl(100+15*B.lz[i],45,155),p=sig(s*(x-x0)/15);this.pts.push({x,y:B.lu[i]<p?1:0,j:(B.lj[i]-0.5)*0.1})}},
+stats(){const P=this.pts,n=P.length,n1=P.reduce((s,p)=>s+p.y,0);if(n<5||n1===0||n1===n)return {err:'Potrzeba co najmniej 5 obserwacji, w tym obu klas (0 i 1).'};const xc=P.map(p=>(p.x-100)/15),ys=P.map(p=>p.y);if(!(sdev(xc)>1e-9))return {err:'Zerowa wariancja x – model nie jest liczony.'};const fit=logit(xc,ys);if(!fit)return {err:'Nie udało się dopasować modelu (macierz osobliwa).'};
+const thr=ctl('thr');let tp=0,fpn=0,tn=0,fn=0;ys.forEach((y,i)=>{const pr=fit.probs[i]>=thr?1:0;if(y&&pr)tp++;else if(y)fn++;else if(pr)fpn++;else tn++});
+return {n,n1,fit,ys,thr,tp,fp:fpn,tn,fn,r:roc(fit.probs,ys),b1x:fit.b1/15,b0x:fit.b0-fit.b1*100/15}},
+drag(i,x,y){const p=this.pts[i];p.x=cl(x,DOM[0],DOM[1]);p.y=y>0.5?1:0},
+add(x,y){this.pts.push({x:cl(x,DOM[0],DOM[1]),y:y>0.5?1:0,j:(R()-0.5)*0.1})},
+del(i){if(this.pts.length>6)this.pts.splice(i,1)},
+sync(){const s=this.stats();setX('n',this.pts.length);if(!s.err)setMain(cl(s.fit.b1,-4,4))},
+onCheck(){},
+render(){const st=this.stats(),W=640,H=430,m={l:58,r:16,t:16,b:50},f=frame(W,H,m,DOM,[-0.2,1.2],'x','P(y = 1)',{ty:[0,0.25,0.5,0.75,1],fy:v=>f2(v,2)});this.fr=f;let g=f.s;const thr=ctl('thr');
+g+=`<line x1="${m.l}" x2="${W-m.r}" y1="${f.sy(thr).toFixed(1)}" y2="${f.sy(thr).toFixed(1)}" style="stroke:var(--muted);stroke-dasharray:5 4"/>`+`<text x="${W-m.r-4}" y="${(f.sy(thr)-5).toFixed(1)}" text-anchor="end" style="fill:var(--muted);font-size:12px">próg ${f2(thr,2)}</text>`;
+if(!st.err){let d='';for(let x=DOM[0];x<=DOM[1];x+=2)d+=(d?'L':'M')+f.sx(x).toFixed(1)+' '+f.sy(sig(st.fit.b0+st.fit.b1*(x-100)/15)).toFixed(1);g+=`<path d="${d}" fill="none" style="stroke:var(--ink);stroke-width:2.4"/>`}
+this.pts.forEach((p,i)=>{const bad=!st.err&&((st.fit.probs[i]>=thr?1:0)!==p.y);g+=pt(f.sx(p.x),f.sy(p.y+p.j),i,p.y?'--c2':'--c1',bad?'stroke-dasharray:3 2;stroke-width:2.2':'')});
+g+=txt(m.l+46,f.sy(1)-16,'klasa 1','font-size:12px;fill:var(--muted)')+txt(m.l+46,f.sy(0)+26,'klasa 0','font-size:12px;fill:var(--muted)');
+$('#plot').setAttribute('viewBox',`0 0 ${W} ${H}`);$('#plot').innerHTML=g;
+if(st.err){$('#panel').innerHTML=warn(st.err)+`<p class="note">n = ${this.pts.length}</p>`;aria(st.err);return}
+const F=st.fit,e=1.96,orS=Math.exp(F.b1),or1=Math.exp(F.b1/15);
+const RW=260,RH=250,rm={l:44,r:12,t:12,b:40},rf=frame(RW,RH,rm,[0,1],[0,1],'1 − swoistość','czułość',{tx:[0,0.5,1],ty:[0,0.5,1],fy:v=>f2(v,1),cid:'clpr'});
+let rs=rf.s+`<line x1="${rf.sx(0)}" y1="${rf.sy(0)}" x2="${rf.sx(1)}" y2="${rf.sy(1)}" style="stroke:var(--axis);stroke-dasharray:4 4"/>`;
+rs+=`<path d="${st.r.pts.map((p,i)=>(i?'L':'M')+rf.sx(p[0]).toFixed(1)+' '+rf.sy(p[1]).toFixed(1)).join('')}" fill="none" style="stroke:var(--c1);stroke-width:2.4"/>`;
+const sens=st.tp/(st.tp+st.fn),spec=st.tn/(st.tn+st.fp);
+rs+=`<circle cx="${rf.sx(1-spec).toFixed(1)}" cy="${rf.sy(sens).toFixed(1)}" r="5.5" style="fill:var(--c2);stroke:var(--card);stroke-width:2"/>`+txt(rf.sx(0.62),rf.sy(0.16),`AUC = ${f2(st.r.auc)}`,'font-size:14px;font-weight:600');
+let h=`<div class="big">AUC: <b>${f2(st.r.auc)}</b></div><div class="sub">Pseudo-R² McFaddena: ${f2(F.mcf)}</div><svg viewBox="0 0 ${RW} ${RH}" style="max-width:300px;margin:0 auto" role="img" aria-label="Krzywa ROC, AUC ${f2(st.r.auc)}">${rs}</svg><p class="note">Pomarańczowy punkt: bieżący próg klasyfikacji.</p>`;
+if(F.sep)h+=warn('Dane są (prawie) idealnie rozdzielone – oszacowania i błędy standardowe są niewiarygodne.');
+h+=`<div class="eq">logit(P) = ${f2(st.b0x)} ${sgn(st.b1x)} ${f2(Math.abs(st.b1x),3)}·x</div>`;
+h+=`<table class="st">${row('b0 (na x wyśrodkowanym)',f2(F.b0))}${row('b1 (na 1 SD x)',`${f2(F.b1)} (SE ${f2(F.se1)})`)}${row('p (test Walda)',fp(F.p1))}${row('OR na 1 SD [95% CI]',`${f2(orS)} [${f2(Math.exp(F.b1-e*F.se1))}; ${f2(Math.exp(F.b1+e*F.se1))}]`)}${row('OR na 1 jednostkę x',f2(or1,3))}${row('n (klasa 1 / klasa 0)',`${st.n} (${st.n1} / ${st.n-st.n1})`)}</table>`;
+h+=`<h3>Macierz pomyłek (próg ${f2(thr,2)})</h3><table class="st"><thead><tr><th></th><th>prognoza 1</th><th>prognoza 0</th></tr></thead><tbody><tr><th scope="row">rzeczywiste 1</th><td>${st.tp}</td><td>${st.fn}</td></tr><tr><th scope="row">rzeczywiste 0</th><td>${st.fp}</td><td>${st.tn}</td></tr></tbody></table><table class="st">${row('Czułość',f2(sens))}${row('Swoistość',f2(spec))}${row('Trafność',f2((st.tp+st.tn)/st.n))}</table>`;
+$('#panel').innerHTML=h;
+aria(`Regresja logistyczna: b1 na 1 SD = ${f2(F.b1)}, OR = ${f2(orS)}, AUC = ${f2(st.r.auc)}.`)}};
+
+const TABS={s1:S1,s2:S2,s3:S3};let tab=S1,mode='drag';
+const mainVal=()=>+$('#mainRange').value,ctl=id=>+$('#x_'+id).value;
+function setMain(v){const r=$('#mainRange');v=cl(v,+r.min,+r.max);r.value=v;$('#mainNum').value=f2(v,tab.main.d)}
+function setX(id,v){const r=$('#x_'+id);if(!r)return;v=cl(v,+r.min,+r.max);r.value=v;const x=tab.extras.find(e=>e.id===id);$('#o_'+id).textContent=f2(v,x.d)}
+function afterEdit(){tab.sync();render()}
+function render(){const p=$('#plot');p.setAttribute('class','m-'+mode);if(tab!==S2){$('#avpWrap').hidden=true;$('#avp').innerHTML=''}tab.render()}
+function regen(){tab.regen();render();}
+function build(t){tab=t;$('#hint').textContent=t.hint;const mr=$('#mainRange'),mn=$('#mainNum');$('#mainLabel').textContent=t.main.label;mr.min=t.main.min;mr.max=t.main.max;mr.step=t.main.step;mr.value=t.main.value;mn.value=f2(t.main.value,t.main.d);
+const box=$('#extras');box.innerHTML='';
+t.extras.forEach(x=>{if(x.type==='check'){box.insertAdjacentHTML('beforeend',`<label class="chk"><input type="checkbox" id="x_${x.id}"> ${x.label}</label>`);$('#x_'+x.id).addEventListener('change',e=>{t.onCheck(x.id,e.target.checked);render()})}
+else{box.insertAdjacentHTML('beforeend',`<div class="sl"><label for="x_${x.id}">${x.label}</label><output id="o_${x.id}">${f2(x.value,x.d)}</output><input type="range" id="x_${x.id}" min="${x.min}" max="${x.max}" step="${x.step}" value="${x.value}"></div>`);$('#x_'+x.id).addEventListener('input',e=>{setX(x.id,+e.target.value);regen()})}});
+document.querySelectorAll('[data-tab]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===t.key)));
+if(t.key==='s1')t.resid=false;
+regen()}
+function reset(){const t=tab;if(t.n!==undefined&&t.key!=='s3')t.n=t.key==='s1'?50:60;if(t.key==='s2')t.avp=1;build(t)}
+$('#mainRange').addEventListener('input',e=>{$('#mainNum').value=f2(+e.target.value,tab.main.d);regen()});
+$('#mainNum').addEventListener('change',e=>{let v=parseFloat(String(e.target.value).replace(',','.').replace('−','-'));if(!Number.isFinite(v))v=mainVal();setMain(v);regen()});
+document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{if(TABS[b.dataset.tab]!==tab){const t=TABS[b.dataset.tab];if(t.key==='s1')t.n=50;if(t.key==='s2')t.n=60;build(t)}}));
+document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{mode=b.dataset.mode;document.querySelectorAll('[data-mode]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));$('#plot').setAttribute('class','m-'+mode)}));
+document.querySelectorAll('[data-avp]').forEach(b=>b.addEventListener('click',()=>{S2.avp=+b.dataset.avp;document.querySelectorAll('[data-avp]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));if(tab===S2)render()}));
+$('#reset').addEventListener('click',reset);
+const plot=$('#plot');let drag=-1;
+plot.addEventListener('pointerdown',e=>{const el=e.target.closest&&e.target.closest('[data-i]'),f=tab.fr;
+if(mode==='drag'&&el){drag=+el.dataset.i;plot.setPointerCapture(e.pointerId);e.preventDefault()}
+else if(mode==='delete'&&el){tab.del(+el.dataset.i);afterEdit()}
+else if(mode==='add'&&!el&&f){const p=svgPt(plot,e);if(p.x>=f.m.l&&p.x<=f.W-f.m.r&&p.y>=f.m.t&&p.y<=f.H-f.m.b){tab.add(f.ix(p.x),f.iy(p.y));afterEdit()}}});
+plot.addEventListener('pointermove',e=>{if(drag<0||!tab.fr)return;const p=svgPt(plot,e),f=tab.fr;tab.drag(drag,f.ix(p.x),f.iy(p.y));afterEdit()});
+['pointerup','pointercancel'].forEach(ev=>plot.addEventListener(ev,()=>{if(drag>=0){drag=-1;render()}}));
+const mq=matchMedia('(prefers-color-scheme: dark)');const setTheme=d=>{document.documentElement.dataset.theme=d?'dark':'light'};setTheme(mq.matches);mq.addEventListener('change',e=>setTheme(e.matches));
+$('#theme').addEventListener('click',()=>setTheme(document.documentElement.dataset.theme!=='dark'));
+$('#png').addEventListener('click',()=>{const svg=$('#plot'),cs=getComputedStyle(document.documentElement),vb=svg.viewBox.baseVal;let s=new XMLSerializer().serializeToString(svg);
+s=s.replace(/var\((--[\w-]+)\)/g,(m,n)=>cs.getPropertyValue(n).trim()||m).replace('<svg ',`<svg width="${vb.width}" height="${vb.height}" font-family="Arial, Helvetica, sans-serif" `);
+const img=new Image();img.onload=()=>{const c=document.createElement('canvas');c.width=vb.width*2;c.height=vb.height*2;const g=c.getContext('2d');g.fillStyle=cs.getPropertyValue('--card').trim()||'#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(img,0,0,c.width,c.height);c.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='regresja-'+tab.key+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500)})};
+img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(s)});
+build(S1);
 </script>
 </body>
 </html>
