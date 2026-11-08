@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mediacja – interaktywna wizualizacja</title>
+<style>
+:root{--bg:#fbfaf8;--card:#ffffff;--ink:#1c1c1a;--muted:#6b6a65;--axis:#b3b1a8;--line:#d9d7d0;--c1:#2a78d6;--c2:#eb6834;--accent:#1f4e79;--warnbg:#fff4e0;--warn:#7a4a00;--okbg:#e6f4ec;--ok:#14532d}
+:root[data-theme=dark]{--bg:#151514;--card:#1d1d1b;--ink:#f0efec;--muted:#a6a49c;--axis:#4f4e48;--line:#343432;--c1:#3987e5;--c2:#e8703f;--accent:#8ab8ee;--warnbg:#3a2d12;--warn:#f0c987;--okbg:#14301f;--ok:#9fe0b8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+.wrap{max-width:1120px;margin:0 auto;padding:20px 18px 40px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+h1{font-size:22px;font-weight:600;margin:0}
+.right{display:flex;gap:10px;align-items:center}
+a.back{color:var(--accent);text-decoration:none;font-size:14px}
+button{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:7px 14px;cursor:pointer}
+button:hover{border-color:var(--axis)}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--c1);outline-offset:2px}
+.hint{color:var(--muted);margin:0 0 14px}
+.ctl{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+.extras{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px 22px}
+.sl{display:grid;grid-template-columns:1fr auto;align-items:center;font-size:13px;color:var(--muted)}
+.sl input{grid-column:1/3;width:100%;accent-color:var(--c1)}
+.sl output{color:var(--ink);font-weight:600}
+.tools{display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px;align-items:start}
+@media(max-width:860px){.layout{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
+svg{display:block;width:100%;height:auto}
+#panel{padding:16px}
+h3{font-size:14px;font-weight:600;margin:14px 0 4px}
+h3:first-child{margin-top:0}
+table.st{width:100%;border-collapse:collapse;font-size:14px;margin-top:4px}
+table.st th{font-weight:400;color:var(--muted);text-align:left;padding:3px 6px 3px 0}
+table.st td{text-align:right;padding:3px 0 3px 6px;font-variant-numeric:tabular-nums}
+table.st thead th{font-size:12px;border-bottom:1px solid var(--line);text-align:right;padding-left:6px}
+table.st thead th:first-child{text-align:left;padding-left:0}
+.res{border-radius:8px;padding:10px 12px;font-size:14px;margin:12px 0 0;background:var(--okbg);color:var(--ok)}
+.res.no{background:var(--warnbg);color:var(--warn)}
+.note{font-size:12px;color:var(--muted);margin:8px 0 0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><h1>Mediacja – zobacz, jak działa</h1><div class="right"><a class="back" href="../">← Wszystkie narzędzia</a><button id="theme" type="button">Motyw: jasny/ciemny</button></div></header>
+<p class="hint">Ustaw ścieżki a, b i c′ i zobacz, jak efekt całkowity rozkłada się na efekt bezpośredni i pośredni (przez mediator M). Zwiększ n, żeby zobaczyć, jak maleją błędy standardowe.</p>
+<section class="ctl" aria-label="Parametry">
+<div class="extras">
+<div class="sl"><label for="a">Ścieżka a (X → M)</label><output id="oa"></output><input type="range" id="a" min="-1" max="1" step="0.05"></div>
+<div class="sl"><label for="b">Ścieżka b (M → Y)</label><output id="ob"></output><input type="range" id="b" min="-1" max="1" step="0.05"></div>
+<div class="sl"><label for="cp">Ścieżka c′ (X → Y bezpośrednio)</label><output id="ocp"></output><input type="range" id="cp" min="-1" max="1" step="0.05"></div>
+<div class="sl"><label for="s">Szum (SD reszt)</label><output id="os"></output><input type="range" id="s" min="0.5" max="2" step="0.1"></div>
+<div class="sl"><label for="n">Liczba obserwacji n</label><output id="on"></output><input type="range" id="n" min="20" max="500" step="10"></div>
+</div>
+<div class="tools"><button type="button" id="newd">Nowe dane</button><button type="button" id="reset">Reset</button></div>
+</section>
+<div class="layout">
+<div>
+<div class="card"><svg id="dg" viewBox="0 0 640 235" role="img" aria-label="Diagram mediacji X, M, Y"></svg></div>
+<p class="note">Grubość strzałki = siła ścieżki. Niebieska: dodatnia, pomarańczowa: ujemna. Linia przerywana: ścieżka nieistotna (p ≥ 0,05). Gwiazdki: * p &lt; 0,05, ** p &lt; 0,01, *** p &lt; 0,001.</p>
+</div>
+<aside class="card" id="panel" aria-label="Statystyki modelu"></aside>
+</div>
+<div id="live" class="sr" aria-live="polite"></div>
+</div>
+<script>
+'use strict';
+//#STATS-START
+function lgamma(x){const c=[76.18009172947146,-86.50532032941677,24.01409824083091,-1.231739572450155,0.1208650973866179e-2,-0.5395239384953e-5];let y=x,t=x+5.5;t-=(x+0.5)*Math.log(t);let s=1.000000000190015;for(let j=0;j<6;j++){y++;s+=c[j]/y}return -t+Math.log(2.5066282746310005*s/x)}
+function betacf(a,b,x){const FP=1e-300,qab=a+b,qap=a+1,qam=a-1;let c=1,d=1-qab*x/qap;if(Math.abs(d)<FP)d=FP;d=1/d;let h=d;for(let m=1;m<=300;m++){const m2=2*m;let aa=m*(b-m)*x/((qam+m2)*(a+m2));d=1+aa*d;if(Math.abs(d)<FP)d=FP;c=1+aa/c;if(Math.abs(c)<FP)c=FP;d=1/d;h*=d*c;aa=-(a+m)*(qab+m)*x/((a+m2)*(qap+m2));d=1+aa*d;if(Math.abs(d)<FP)d=FP;c=1+aa/c;if(Math.abs(c)<FP)c=FP;d=1/d;const del=d*c;h*=del;if(Math.abs(del-1)<3e-12)break}return h}
+function ibeta(x,a,b){if(!(x>0))return 0;if(x>=1)return 1;const bt=Math.exp(lgamma(a+b)-lgamma(a)-lgamma(b)+a*Math.log(x)+b*Math.log(1-x));return x<(a+1)/(a+b+2)?bt*betacf(a,b,x)/a:1-bt*betacf(b,a,1-x)/b}
+const pT=(t,df)=>ibeta(df/(df+t*t),df/2,0.5);
+function erf(x){const s=Math.sign(x);x=Math.abs(x);const t=1/(1+0.3275911*x);return s*(1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x))}
+const pZ=z=>1-erf(Math.abs(z)/Math.SQRT2);
+function inv(M){const n=M.length;let big=0;M.forEach(r=>r.forEach(v=>big=Math.max(big,Math.abs(v))));const A=M.map((r,i)=>[...r,...Array.from({length:n},(_,j)=>+(i===j))]);for(let i=0;i<n;i++){let p=i;for(let k=i+1;k<n;k++)if(Math.abs(A[k][i])>Math.abs(A[p][i]))p=k;if(Math.abs(A[p][i])<1e-11*big)return null;[A[i],A[p]]=[A[p],A[i]];const d=A[i][i];for(let j=0;j<2*n;j++)A[i][j]/=d;for(let k=0;k<n;k++)if(k!==i){const f=A[k][i];if(f)for(let j=0;j<2*n;j++)A[k][j]-=f*A[i][j]}}return A.map(r=>r.slice(n))}
+function ols(X,y){const n=X.length,p=X[0].length;if(n-p<1)return null;const A=Array.from({length:p},()=>new Array(p).fill(0)),b=new Array(p).fill(0);for(let i=0;i<n;i++)for(let a=0;a<p;a++){b[a]+=X[i][a]*y[i];for(let c=0;c<p;c++)A[a][c]+=X[i][a]*X[i][c]}const I=inv(A);if(!I)return null;const beta=I.map(r=>r.reduce((s,v,j)=>s+v*b[j],0));const fit=X.map(r=>r.reduce((s,v,j)=>s+v*beta[j],0));let sse=0;for(let i=0;i<n;i++)sse+=(y[i]-fit[i])**2;const dof=n-p,s2=sse/dof;const se=beta.map((_,k)=>Math.sqrt(Math.max(0,s2*I[k][k])));const t=beta.map((v,k)=>v/se[k]);const pv=t.map(v=>pT(v,dof));return {beta,se,t,pv,dof}}
+function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function bootIndirect(X,M,Y,B,seed){const n=X.length,R=rng(seed),out=[],ix=new Array(n);for(let k=0;k<B;k++){let mx=0,mm=0,my=0;for(let i=0;i<n;i++){const j=Math.floor(R()*n);ix[i]=j;mx+=X[j];mm+=M[j];my+=Y[j]}mx/=n;mm/=n;my/=n;let sxx=0,smm=0,sxm=0,sxy=0,smy=0;for(let i=0;i<n;i++){const j=ix[i],x=X[j]-mx,m=M[j]-mm,y=Y[j]-my;sxx+=x*x;smm+=m*m;sxm+=x*m;sxy+=x*y;smy+=m*y}const det=sxx*smm-sxm*sxm;if(Math.abs(det)<1e-12)continue;out.push((sxm/sxx)*((smy*sxx-sxm*sxy)/det))}out.sort((p,q)=>p-q);const q=f=>out[Math.min(out.length-1,Math.max(0,Math.floor(f*out.length)))];return {lo:q(0.025),hi:q(0.975),B:out.length}}
+//#STATS-END
+
+const $=s=>document.querySelector(s);
+const f2=(v,d=2)=>Number.isFinite(v)?v.toLocaleString('pl-PL',{minimumFractionDigits:d,maximumFractionDigits:d}):'–';
+const fp=p=>!Number.isFinite(p)?'–':p<0.001?'< 0,001':f2(p,3);
+const stars=p=>p<0.001?'***':p<0.01?'**':p<0.05?'*':'';
+const DEF={a:0.6,b:0.5,cp:0.2,s:1,n:100};
+let seed=20261108,base,res=null,ci=null,timer=null;
+function makeBase(){const R=rng(seed);const g=()=>{let u=0;while(!u)u=R();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*R())};const arr=()=>Array.from({length:500},g);base={x:arr(),e1:arr(),e2:arr()}}
+const val=id=>+$('#'+id).value;
+function showOut(){$('#oa').textContent=f2(val('a'));$('#ob').textContent=f2(val('b'));$('#ocp').textContent=f2(val('cp'));$('#os').textContent=f2(val('s'),1);$('#on').textContent=String(val('n'))}
+function analyze(){
+const a=val('a'),b=val('b'),cp=val('cp'),s=val('s'),n=val('n');
+const X=base.x.slice(0,n),M=X.map((x,i)=>a*x+s*base.e1[i]),Y=X.map((x,i)=>cp*x+b*M[i]+s*base.e2[i]);
+const fa=ols(X.map(x=>[1,x]),M),fb=ols(X.map((x,i)=>[1,x,M[i]]),Y),ft=ols(X.map(x=>[1,x]),Y);
+if(!fa||!fb||!ft)return {err:'Nie udało się dopasować modelu.'};
+const ea=fa.beta[1],eb=fb.beta[2],ecp=fb.beta[1],ec=ft.beta[1],ab=ea*eb;
+const se=Math.sqrt(eb*eb*fa.se[1]**2+ea*ea*fb.se[2]**2),z=ab/se;
+return {X,M,Y,n,set:{a,b,cp,c:cp+a*b,ab:a*b},a:{b:ea,se:fa.se[1],p:fa.pv[1]},b:{b:eb,se:fb.se[2],p:fb.pv[2]},cp:{b:ecp,se:fb.se[1],p:fb.pv[1]},c:{b:ec,se:ft.se[1],p:ft.pv[1]},ab,sobelZ:z,sobelP:pZ(z)}}
+const box=(x,y,t)=>`<rect x="${x}" y="${y}" width="100" height="44" rx="8" style="fill:var(--card);stroke:var(--axis);stroke-width:1.5"/><text x="${x+50}" y="${y+27}" text-anchor="middle" style="fill:var(--ink);font-size:15px;font-weight:600">${t}</text>`;
+function arrow(x1,y1,x2,y2,v,p){const w=1.5+5*Math.min(1,Math.abs(v)),col=v<0?'var(--c2)':'var(--c1)',dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L,hs=9+w,bx=x2-ux*hs,by=y2-uy*hs,dash=p>=0.05?' stroke-dasharray="7 5"':'';
+return `<line x1="${x1}" y1="${y1}" x2="${bx.toFixed(1)}" y2="${by.toFixed(1)}" style="stroke:${col};stroke-width:${w.toFixed(1)}"${dash}/><polygon points="${x2},${y2} ${(bx-uy*hs*0.5).toFixed(1)},${(by+ux*hs*0.5).toFixed(1)} ${(bx+uy*hs*0.5).toFixed(1)},${(by-ux*hs*0.5).toFixed(1)}" style="fill:${col}"/>`}
+const lab=(x,y,t,anch='middle')=>`<text x="${x}" y="${y}" text-anchor="${anch}" style="fill:var(--ink);font-size:14px;paint-order:stroke;stroke:var(--card);stroke-width:4px">${t}</text>`;
+function render(){
+if(res.err){$('#dg').innerHTML='';$('#panel').innerHTML=`<p class="res no">${res.err}</p>`;return}
+let g=arrow(100,148,275,78,res.a.b,res.a.p)+arrow(365,78,540,148,res.b.b,res.b.p)+arrow(132,172,508,172,res.cp.b,res.cp.p);
+g+=box(30,150,'X')+box(270,30,'M')+box(510,150,'Y');
+g+=lab(160,92,`a = ${f2(res.a.b)}${stars(res.a.p)}`,'end')+lab(480,92,`b = ${f2(res.b.b)}${stars(res.b.p)}`,'start')+lab(320,162,`c′ = ${f2(res.cp.b)}${stars(res.cp.p)}`);
+g+=lab(320,206,`Efekt całkowity c = ${f2(res.c.b)}${stars(res.c.p)}`)+lab(320,226,`Efekt pośredni a·b = ${f2(res.ab)}`);
+$('#dg').innerHTML=g;
+const row=(k,o,set)=>`<tr><th scope="row">${k}</th><td>${f2(o.b)}</td><td>${f2(o.se)}</td><td>${fp(o.p)}</td><td>${f2(set)}</td></tr>`;
+let h=`<h3>Ścieżki</h3><table class="st"><thead><tr><th></th><th>b</th><th>SE</th><th>p</th><th>ustawione</th></tr></thead><tbody>${row('a (X → M)',res.a,res.set.a)}${row('b (M → Y)',res.b,res.set.b)}${row('c′ (bezpośredni)',res.cp,res.set.cp)}${row('c (całkowity)',res.c,res.set.c)}</tbody></table>`;
+const sig=ci&&ci.lo*ci.hi>0,cpSig=res.cp.p<0.05;
+const pct=Math.abs(res.c.b)>0.1&&res.ab*res.c.b>0?f2(res.ab/res.c.b*100,0)+'%':'–';
+h+=`<h3>Efekt pośredni a·b</h3><table class="st">${`<tr><th scope="row">a·b (ustawione ${f2(res.set.ab)})</th><td>${f2(res.ab)}</td></tr>`}<tr><th scope="row">Test Sobela: z, p</th><td>${f2(res.sobelZ)}, ${fp(res.sobelP)}</td></tr><tr><th scope="row">Bootstrap 95% CI</th><td>${ci?`[${f2(ci.lo)}; ${f2(ci.hi)}]`:'liczę…'}</td></tr><tr><th scope="row">Odsetek efektu przez M</th><td>${pct}</td></tr><tr><th scope="row">n</th><td>${res.n}</td></tr></table>`;
+let concl='';
+if(ci){
+if(sig){const opp=res.ab*res.cp.b<0;concl=opp?'Efekt pośredni jest istotny i ma przeciwny znak niż efekt bezpośredni – to wzorzec supresji (mediacji niespójnej).':cpSig?'Efekt pośredni jest istotny, a efekt bezpośredni nadal też: mediacja częściowa.':'Efekt pośredni jest istotny, a efekt bezpośredni nie: mediacja pełna.'}
+else concl='Przedział bootstrap obejmuje zero: brak istotnego efektu pośredniego.';
+h+=`<p class="res${sig?'':' no'}" role="status">${concl}</p>`}
+h+=`<p class="note">Współczynniki są niestandaryzowane. Bootstrap: 1000 losowań. To, że model „mediacji” pasuje do danych, nie dowodzi kierunku przyczynowego – ten wynika z założeń badania, nie z analizy.</p>`;
+$('#panel').innerHTML=h;
+$('#live').textContent=`Mediacja: a = ${f2(res.a.b)}, b = ${f2(res.b.b)}, c prim = ${f2(res.cp.b)}, efekt pośredni = ${f2(res.ab)}.`}
+function update(){showOut();res=analyze();ci=null;render();clearTimeout(timer);if(!res.err)timer=setTimeout(()=>{ci=bootIndirect(res.X,res.M,res.Y,1000,12345);render()},150)}
+['a','b','cp','s','n'].forEach(id=>$('#'+id).addEventListener('input',update));
+$('#newd').addEventListener('click',()=>{seed+=1;makeBase();update()});
+$('#reset').addEventListener('click',()=>{Object.keys(DEF).forEach(k=>$('#'+k).value=DEF[k]);update()});
+const mq=matchMedia('(prefers-color-scheme: dark)');const setTheme=d=>{document.documentElement.dataset.theme=d?'dark':'light'};setTheme(mq.matches);mq.addEventListener('change',e=>setTheme(e.matches));
+$('#theme').addEventListener('click',()=>setTheme(document.documentElement.dataset.theme!=='dark'));
+Object.keys(DEF).forEach(k=>$('#'+k).value=DEF[k]);
+makeBase();update();
+</script>
+</body>
+</html>
