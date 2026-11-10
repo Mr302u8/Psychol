@@ -162,6 +162,15 @@ fieldset{border:1px solid var(--line);border-radius:8px;margin:8px 0;padding:6px
 <p class="note" style="margin:0">Przycisk „Widziałem" przy propozycji chowa ją i zapisuje (razem z oceną, jeśli ją podam) w tej przeglądarce. Nie trafia to na serwer ani do innych odwiedzających.</p>
 <details><summary>Pokaż listę i eksport</summary><ul id="mkList"></ul><textarea id="mkExport" readonly aria-label="Eksport oznaczeń"></textarea><div class="row"><button type="button" id="mkCopy">Kopiuj listę</button><button type="button" id="mkClear">Wyczyść wszystkie</button></div></details>
 </section>
+<section class="box" aria-label="Oceny z innych serwisów">
+<h2>Oceny z innych serwisów</h2>
+<p class="note" style="margin:0 0 6px">Przy propozycjach pokazuję oceny IMDb, Rotten Tomatoes, Metacritic (OMDb) oraz Letterboxd, Trakt i inne (MDBList), a z nich ocenę zbiorczą. Do tego potrzebne są darmowe klucze. Klucze wpisane tutaj zostają tylko w tej przeglądarce.</p>
+<details><summary>Klucze API</summary>
+<div class="row"><label for="kOmdb">Klucz OMDb</label><input type="text" id="kOmdb" autocomplete="off"><label for="kMdb">Klucz MDBList</label><input type="text" id="kMdb" autocomplete="off"><button type="button" id="kSave">Zapisz i sprawdź</button></div>
+</details>
+<div id="kMsg"></div>
+</section>
+
 
 <p class="note">This product uses the TMDB API but is not endorsed or certified by TMDB. Dane o filmach i serialach: themoviedb.org.</p>
 <div id="live" class="sr" aria-live="polite"></div>
@@ -268,7 +277,7 @@ const card=e=>{const m=e.m,why=e.src.sort((a,b)=>b.c-a.c).slice(0,3).map(s=>esc(
 const orig=m.original_title&&m.original_title!==m.title?esc(m.original_title)+' · ':'',gn=(m.genre_ids||[]).map(i=>GEN[i]&&GEN[i][0]).filter(Boolean).slice(0,3).join(', ');
 const ov=(m.overview||'').length>170?m.overview.slice(0,170).replace(/\s\S*$/,'')+'…':(m.overview||'');
 const key=mkey(m);reg.set(key,{m,imdb:e.imdb,yr:e.yr});
-return `<article class="film">${m.poster_path?`<img class="poster" loading="lazy" alt="Plakat: ${esc(m.title)}" src="https://image.tmdb.org/t/p/w185${esc(m.poster_path)}">`:'<div class="poster" role="img" aria-label="Brak plakatu"></div>'}<div><h3>${esc(m.title)}</h3><div class="sub"><span class="badge">${m.type==='tv'?'Serial':'Film'}</span>${orig}${e.yr||''}${gn?' · '+esc(gn):''}</div><div class="sub">TMDB ${f1(m.vote_average||0)} (${(m.vote_count||0).toLocaleString('pl-PL')} głosów)${e.pct!=null?' · dopasowanie '+e.pct+'%':''}</div>${e.note?`<div class="sub">${esc(e.note)}</div>`:''}${wt?`<div class="sub">Przewidywana moja ocena: ~${f1(predRating(m.vote_average,e.aff,wt.off||0,wt.sd))}</div>`:''}${why?`<div class="why">Podobne do tego, co lubię: ${why}</div>`:''}${ov?`<p>${esc(ov)}</p>`:''}<a href="${e.imdb?'https://www.imdb.com/title/'+esc(e.imdb)+'/':'https://www.imdb.com/find/?q='+encodeURIComponent(m.title+(e.yr?' '+e.yr:''))}" target="_blank" rel="noopener">Zobacz w IMDb ↗</a>${e.known?'':`<div class="acts"><button type="button" data-act="seen" data-k="${key}">Widziałem</button><button type="button" data-act="skip" data-k="${key}">Nie interesuje mnie</button></div><div class="rate" hidden>Moja ocena: ${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button type="button" data-act="rate" data-k="${key}" data-r="${n}">${n}</button>`).join('')}<button type="button" data-act="rate" data-k="${key}" data-r="0">bez oceny</button></div>`}</div></article>`};
+return `<article class="film">${m.poster_path?`<img class="poster" loading="lazy" alt="Plakat: ${esc(m.title)}" src="https://image.tmdb.org/t/p/w185${esc(m.poster_path)}">`:'<div class="poster" role="img" aria-label="Brak plakatu"></div>'}<div><h3>${esc(m.title)}</h3><div class="sub"><span class="badge">${m.type==='tv'?'Serial':'Film'}</span>${orig}${e.yr||''}${gn?' · '+esc(gn):''}</div><div class="sub">TMDB ${f1(m.vote_average||0)} (${(m.vote_count||0).toLocaleString('pl-PL')} głosów)${e.pct!=null?' · dopasowanie '+e.pct+'%':''}</div>${e.note?`<div class="sub">${esc(e.note)}</div>`:''}${e.imdb?`<div class="sub rat" data-rat="${esc(e.imdb)}" data-type="${m.type}" data-tmdb="${m.vote_average||0}"></div>`:''}${wt?`<div class="sub pred" data-aff="${e.aff}">Przewidywana moja ocena: ~${f1(predRating(m.vote_average,e.aff,wt.off||0,wt.sd))}</div>`:''}${why?`<div class="why">Podobne do tego, co lubię: ${why}</div>`:''}${ov?`<p>${esc(ov)}</p>`:''}<a href="${e.imdb?'https://www.imdb.com/title/'+esc(e.imdb)+'/':'https://www.imdb.com/find/?q='+encodeURIComponent(m.title+(e.yr?' '+e.yr:''))}" target="_blank" rel="noopener">Zobacz w IMDb ↗</a>${e.known?'':`<div class="acts"><button type="button" data-act="seen" data-k="${key}">Widziałem</button><button type="button" data-act="skip" data-k="${key}">Nie interesuje mnie</button></div><div class="rate" hidden>Moja ocena: ${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button type="button" data-act="rate" data-k="${key}" data-r="${n}">${n}</button>`).join('')}<button type="button" data-act="rate" data-k="${key}" data-r="0">bez oceny</button></div>`}</div></article>`};
 const imdbCache=new Map();
 async function imdbOf(m){const k=m.type+':'+m.id;if(imdbCache.has(k))return imdbCache.get(k);let v=null;try{const r=await tmdb('/'+m.type+'/'+m.id+'/external_ids',{});v=r.imdb_id||null}catch(e){}imdbCache.set(k,v);return v}
 let renderTok=0;
@@ -280,7 +289,7 @@ await mapLimit(ranked,6,async e=>{e.imdb=await imdbOf(e.m)});
 if(tok!==renderTok)return;
 const sI=built.seenI||new Set(),list=ranked.filter(e=>!(e.imdb&&sI.has(e.imdb))).slice(0,30);
 $('#count').textContent=list.length?`Pokazano ${list.length} propozycji, których jeszcze nie oceniłem.`:'Brak propozycji spełniających filtry. Poluzuj filtry.';
-$('#out').innerHTML=list.map(card).join('');
+$('#out').innerHTML=list.map(card).join('');fillRatings($('#out'));
 $('#live').textContent=$('#count').textContent}
 ['#tMovie','#tTv','#fYear','#fVotes','#fRate','#fGenre'].forEach(id=>$(id).addEventListener('change',render));
 $('#own').addEventListener('input',render);
@@ -312,6 +321,35 @@ catch(e){const m=String(e.message||e);msg('#simMsg',/\b(401|403)\b/.test(m)?'TMD
 finally{$('#simGo').disabled=false}}
 $('#simGo').addEventListener('click',similar);
 $('#simQ').addEventListener('keydown',e=>{if(e.key==='Enter')similar()});
+
+/* ===== oceny z wielu serwisów (OMDb + MDBList) ===== */
+const OMDB_KEY='c43471a8',MDB_KEY='mk0rb0ux4wayqjdey3cuhdlvn';
+const rk=n=>{let v='';try{v=localStorage.getItem(n==='o'?'filmy.k.omdb':'filmy.k.mdb')||''}catch(e){}return (n==='o'?OMDB_KEY:MDB_KEY)||v};
+const RW=(window.PROFILE&&window.PROFILE.rw)||{imdb:1,tmdb:0.6,rt:1,mc:1,lb:1,trakt:0.5,popcorn:0.4};
+const RNAME={imdb:'IMDb',tmdb:'TMDB',rt:'Rotten Tomatoes',mc:'Metacritic',lb:'Letterboxd',trakt:'Trakt',popcorn:'RT widzowie'};
+const MSRC={imdb:'imdb',tmdb:'tmdb',trakt:'trakt',letterboxd:'lb',tomatoes:'rt',tomatoesaudience:'popcorn',metacritic:'mc'};
+const RC='filmy.rat.v1';let ratCache={};try{ratCache=JSON.parse(localStorage.getItem(RC)||'{}')||{}}catch(e){ratCache={}}
+const saveRat=()=>{try{localStorage.setItem(RC,JSON.stringify(ratCache))}catch(e){}};
+async function fetchRatings(imdb,type,fresh){const c=ratCache[imdb];if(!fresh&&c&&Date.now()-c.t<6048e5)return c.r;
+ const r={},ok=rk('o'),mkey_=rk('m');
+ if(mkey_){try{const u=new URL('https://api.mdblist.com/imdb/'+(type==='tv'?'show':'movie')+'/'+imdb);u.searchParams.set('apikey',mkey_);const j=await (await fetch(u)).json();
+  (j.ratings||[]).forEach(x=>{const k=MSRC[x.source];let v=x.score!=null?x.score/10:null;if(v==null&&(k==='imdb'||k==='tmdb'))v=parseFloat(x.value);if(k&&v>0&&!(k in r))r[k]=v})}catch(e){}}
+ if(ok){try{const u=new URL('https://www.omdbapi.com/');u.searchParams.set('apikey',ok);u.searchParams.set('i',imdb);const j=await (await fetch(u)).json();
+  if(j&&j.Response!=='False'){const a=parseFloat(j.imdbRating);if(a>0&&!('imdb' in r))r.imdb=a;const m=parseFloat(j.Metascore);if(m>0&&!('mc' in r))r.mc=m/10;
+   (j.Ratings||[]).forEach(x=>{if(x.Source==='Rotten Tomatoes'&&!('rt' in r)){const p=parseFloat(x.Value);if(p>=0)r.rt=p/10}})}}catch(e){}}
+ if(Object.keys(r).length){ratCache[imdb]={t:Date.now(),r};saveRat()}return r}
+function combineRatings(r,tmdb){const all={...r};if(tmdb>0&&!('tmdb' in all))all.tmdb=tmdb;let s=0,w=0,n=0;for(const k in all){const wt_=RW[k];if(wt_>0&&all[k]>0){s+=wt_*all[k];w+=wt_;n++}}return {all,comb:n>=2?s/w:null}}
+const ratHtml=(all,comb)=>Object.keys(all).filter(k=>k!=='tmdb').map(k=>`${RNAME[k]} ${k==='rt'||k==='popcorn'?Math.round(all[k]*10)+'%':f1(all[k])}`).join(' · ')+(comb?`${Object.keys(all).some(k=>k!=='tmdb')?' · ':''}<b>razem ${f1(comb)}/10</b>`:'');
+async function fillRatings(root){try{if(!rk('o')&&!rk('m'))return;const els=[...(root||document).querySelectorAll('[data-rat]')],by=new Map();
+ els.forEach(e=>{const k=e.dataset.rat;if(!by.has(k))by.set(k,[]);by.get(k).push(e)});
+ await mapLimit([...by.keys()],4,async imdb=>{const es=by.get(imdb),type=es[0].dataset.type,tm=+es[0].dataset.tmdb||0,r=await fetchRatings(imdb,type),cb=combineRatings(r,tm);
+  es.forEach(el=>{if(!Object.keys(r).length){el.textContent='';return}el.innerHTML=ratHtml(cb.all,cb.comb);
+   if(cb.comb&&wt){const art=el.closest&&el.closest('article'),pr=art&&art.querySelector('.pred');if(pr)pr.textContent='Przewidywana moja ocena: ~'+f1(predRating(cb.comb,+pr.dataset.aff||0,wt.off||0,wt.sd))+' (z ocen kilku serwisów)'}})})}catch(e){}}
+function ratStatus(){const a=[];if(rk('o'))a.push('OMDb');if(rk('m'))a.push('MDBList');return a.length?'Aktywne źródła ocen: '+a.join(', ')+'.':'Oceny z innych serwisów są wyłączone (brak kluczy).'}
+$('#kOmdb').value=rk('o');$('#kMdb').value=rk('m');msg('#kMsg',ratStatus(),!rk('o')&&!rk('m'));
+$('#kSave').addEventListener('click',async()=>{try{localStorage.setItem('filmy.k.omdb',$('#kOmdb').value.trim());localStorage.setItem('filmy.k.mdb',$('#kMdb').value.trim())}catch(e){}
+ msg('#kMsg','Sprawdzam…',false);const r=await fetchRatings('tt0111161','movie',true),got=Object.keys(r);
+ msg('#kMsg',ratStatus()+(got.length?' Test (Skazani na Shawshank): '+got.map(k=>RNAME[k]+' '+f1(r[k])).join(', ')+'.':' Test nie zwrócił ocen. Sprawdź klucz (albo serwis blokuje zapytania z przeglądarki).'),!got.length)});
 
 /* ===== oznaczenia: widziałem / nie interesuje mnie ===== */
 const MK='filmy.marks.v1';let marks={};
@@ -418,7 +456,7 @@ try{
  list=list.filter(e=>!(e.imdb&&sI.has(e.imdb))).slice(0,N);
  await mapLimit(list,5,async e=>{try{const d=await tmdb('/'+e.m.type+'/'+e.m.id,{language:'pl-PL'});if(e.m.type==='movie'&&d.runtime)e.note='Czas trwania: '+d.runtime+' min';else if(e.m.type==='tv'){const er=(d.episode_run_time||[])[0],ss=d.number_of_seasons;e.note=[er?'Odcinek: ~'+er+' min':'',ss?ss+' '+(ss===1?'sezon':ss<5?'sezony':'sezonów'):''].filter(Boolean).join(' · ')}}catch(x){}});
  if(tok!==dTok)return;
- $('#dOut').innerHTML=list.map(card).join('');
+ $('#dOut').innerHTML=list.map(card).join('');fillRatings($('#dOut'));
  msg('#dMsg',list.length?`Wybrane dla Ciebie: ${list.length}. Kliknij „Dobierz" ponownie, żeby wylosować inne.${warn}`:'Nic nie pasuje do tych kryteriów (albo wszystko już widziałem). Poluzuj kryteria, np. obniż minimalną ocenę lub liczbę głosów.'+warn,!list.length);
  $('#live').textContent=$('#dMsg').textContent}
 catch(e){const m=String(e.message||e);msg('#dMsg',/\b(401|403)\b/.test(m)?'TMDB odrzucił klucz zapisany w stronie.':'Nie udało się połączyć z TMDB. Sprawdź internet i spróbuj ponownie.',true)}
@@ -576,7 +614,7 @@ try{
  list=list.slice(0,N);
  const SN={cur:'lista dydaktyczna',wiki:'kategoria Wikipedii',wikilist:'lista Wikipedii',imdblist:'lista IMDb',kw:'słowa kluczowe TMDB'};
  list.forEach(e=>{e.note='Temat: '+[...e.conds].slice(0,3).join('; ')+' · źródło: '+[...e.srcs].map(x=>SN[x]).join(', ')+(e.known?' · już widziałem':'')});
- $('#pOut').innerHTML=list.map(card).join('');
+ $('#pOut').innerHTML=list.map(card).join('');fillRatings($('#pOut'));
  msg('#pMsg',(list.length?`Znaleziono ${list.length}. Kliknij „Szukaj" ponownie, żeby zobaczyć inne.`:'Nic nie znaleziono dla tych kryteriów (albo wszystko już widziałem). Wybierz inne tematy albo przełącz na „wszystkie".')+(customInfo.length?' Słowa kluczowe TMDB: '+esc(customInfo.join('; '))+'.':'')+(wikiFail?' Wikipedia nie odpowiedziała, więc pominąłem ją tym razem.':''),!list.length);
  $('#live').textContent=$('#pMsg').textContent}
 catch(e){const m=String(e.message||e);msg('#pMsg',/\b(401|403)\b/.test(m)?'TMDB odrzucił klucz zapisany w stronie.':'Nie udało się połączyć z TMDB. Sprawdź internet i spróbuj ponownie.',true)}
