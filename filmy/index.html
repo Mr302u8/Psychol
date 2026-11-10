@@ -60,13 +60,6 @@ fieldset{border:1px solid var(--line);border-radius:8px;margin:8px 0;padding:6px
 <section class="box" aria-label="Profil ocen">
 <h2>Profil</h2>
 <div id="profile"></div>
-<details><summary>Użyj własnych ocen zamiast moich</summary>
-<div class="row"><input type="file" id="file" accept=".csv,.txt,text/csv" aria-label="Plik CSV z ocenami"><button type="button" id="sample">Wczytaj przykład</button></div>
-<textarea id="csv" placeholder="Albo wklej tutaj CSV: pierwszy wiersz to nagłówki (eksport IMDb albo np. Name,Year,Rating)" aria-label="Zawartość CSV"></textarea>
-<div class="row" id="mapRow" hidden><label for="cTitle">Kolumna z tytułem</label><select id="cTitle"></select><label for="cYear">rok</label><select id="cYear"></select><label for="cRate">ocena</label><select id="cRate"></select></div>
-<div class="row"><button type="button" id="backProfile">Wróć do wbudowanego profilu</button></div>
-<div id="csvMsg"></div>
-</details>
 <details><summary>Jak wybieram, na czym oprzeć rekomendacje</summary>
 <ul>
 <li>Oceny liczę względem mojej średniej i rozrzutu, więc „lubię" znaczy „wyżej niż zwykle", a nie stały próg.</li>
@@ -141,8 +134,6 @@ fieldset{border:1px solid var(--line);border-radius:8px;margin:8px 0;padding:6px
 <div id="pCond"></div>
 <fieldset id="pWikiBox" hidden><legend>Dodatkowe kategorie z Wikipedii (pobrane na żywo)</legend><div class="chips" id="pWiki"></div></fieldset>
 <fieldset><legend>Gotowe listy (zaznaczone listy dodają swoje tytuły; bez wybranego tematu szukam tylko w nich)</legend><div class="chips" id="pLists"></div>
-<div class="row"><label for="pFile">Własna lista z IMDb (plik CSV z przycisku Export na stronie listy)</label><input type="file" id="pFile" accept=".csv,text/csv"></div><div id="pFileMsg"></div></fieldset>
-<fieldset><legend>Własne słowo kluczowe TMDB (po angielsku, kilka po przecinku)</legend><div class="row"><input type="text" id="pKw" placeholder="np. hallucination, grief, hospice" aria-label="Słowa kluczowe TMDB"></div><p class="note" style="margin:0">Słowa kluczowe to etykiety nadawane filmom przez użytkowników TMDB. Wpisz słowo, a pokażę, które etykiety rozpoznał TMDB, i znajdę filmy z nimi. Same słowa przeglądasz na themoviedb.org/keyword/…</p></fieldset>
 <fieldset><legend>Pokaż</legend><div class="chips" id="pMode"></div></fieldset>
 <div class="row"><label for="pN">Ile wyników</label><select id="pN"><option>3</option><option selected>6</option><option>12</option></select><label class="chk"><input type="checkbox" id="pMovie" checked> filmy</label><label class="chk"><input type="checkbox" id="pTv" checked> seriale</label><button type="button" id="pGo" class="primary">Szukaj</button></div>
 <div id="pMsg"></div>
@@ -152,7 +143,7 @@ fieldset{border:1px solid var(--line);border-radius:8px;margin:8px 0;padding:6px
 <li><a href="https://en.wikipedia.org/wiki/List_of_films_about_mental_disorders" target="_blank" rel="noopener">Wikipedia: lista filmów o zaburzeniach psychicznych</a> (według zaburzeń).</li>
 <li><a href="https://www.otago.ac.nz/otagobulletin/research/top-10-movies-for-study-of-mental-health" target="_blank" rel="noopener">Uniwersytet Otago: „Madness in the Movies"</a>, badanie wyboru filmów dla studentów medycyny, z pełną listą 503 filmów.</li>
 <li><a href="https://www.imdb.com/list/ls057738327" target="_blank" rel="noopener">IMDb: 30 Great Movies About Mental Illness</a> (z opisem zaburzeń przy każdym filmie).</li>
-<li>Listy: Otago „Madness in the Movies" (<a href="https://www.otago.ac.nz/otagobulletin/research/top-10-movies-for-study-of-mental-health" target="_blank" rel="noopener">opis badania</a>), IMDb (30 Great Movies About Mental Illness) i Wikipedia (lista pobierana na żywo). Listy IMDb nie mają publicznego API, więc dowolną inną listę (np. „Movies Every Psychology Student Must See") wczytasz własnym eksportem CSV.</li>
+<li>Listy: Otago „Madness in the Movies" (<a href="https://www.otago.ac.nz/otagobulletin/research/top-10-movies-for-study-of-mental-health" target="_blank" rel="noopener">opis badania</a>), IMDb (30 Great Movies About Mental Illness) i Wikipedia (lista pobierana na żywo).</li>
 <li>Na żywo: kategorie Wikipedii „Films about …" (np. depression, bipolar disorder, eating disorders) → numery IMDb z Wikidata → TMDB. Do tego słowa kluczowe TMDB (np. depression, school shooting). Trafność bywa różna, bo kategorie tworzą wolontariusze, a słowa kluczowe użytkownicy.</li>
 </ul></details>
 </section>
@@ -162,16 +153,6 @@ fieldset{border:1px solid var(--line);border-radius:8px;margin:8px 0;padding:6px
 <p class="note" style="margin:0">Przycisk „Widziałem" przy propozycji chowa ją i zapisuje (razem z oceną, jeśli ją podam) w tej przeglądarce. Nie trafia to na serwer ani do innych odwiedzających.</p>
 <details><summary>Pokaż listę i eksport</summary><ul id="mkList"></ul><textarea id="mkExport" readonly aria-label="Eksport oznaczeń"></textarea><div class="row"><button type="button" id="mkCopy">Kopiuj listę</button><button type="button" id="mkClear">Wyczyść wszystkie</button></div></details>
 </section>
-<section class="box" aria-label="Oceny z innych serwisów">
-<h2>Oceny z innych serwisów</h2>
-<p class="note" style="margin:0 0 6px">Przy propozycjach pokazuję oceny IMDb, Rotten Tomatoes, Metacritic (OMDb) oraz Letterboxd, Trakt i inne (MDBList), a z nich ocenę zbiorczą. Do tego potrzebne są darmowe klucze. Klucze wpisane tutaj zostają tylko w tej przeglądarce.</p>
-<details><summary>Klucze API</summary>
-<div class="row"><label for="kOmdb">Klucz OMDb</label><input type="text" id="kOmdb" autocomplete="off"><label for="kMdb">Klucz MDBList</label><input type="text" id="kMdb" autocomplete="off"><button type="button" id="kSave">Zapisz i sprawdź</button></div>
-</details>
-<div id="kMsg"></div>
-</section>
-
-
 <p class="note">This product uses the TMDB API but is not endorsed or certified by TMDB. Dane o filmach i serialach: themoviedb.org.</p>
 <div id="live" class="sr" aria-live="polite"></div>
 </div>
@@ -256,22 +237,9 @@ $('#fGenre').innerHTML='<option value="">wszystkie</option>'+GENRE_OPTS.map(g=>`
 function fillSel(id,h,withNone,val){const s=$(id);s.innerHTML=(withNone?'<option value="-1">— brak —</option>':'')+h.map((x,i)=>`<option value="${i}">${esc(x||('kolumna '+(i+1)))}</option>`).join('');s.value=String(val)}
 function guessCols(h){const n=h.map(x=>norm(x)),find=(...res)=>{for(const re of res){const i=n.findIndex(x=>re.test(x));if(i>=0)return i}return -1};return {title:find(/^(name|title|tytul|film)$/,/tytul|title|name|film/),year:find(/^(year|rok)$/,/rok|year/),rating:find(/^(rating|ocena)$/,/twoja ocena|my rating|ocena|rating|score/)}}
 function useEmbedded(){const P=window.PROFILE;cands=[];$('#resBox').hidden=true;$('#srcList').innerHTML='';
-if(!P){built=null;wt=null;msg('#profile','Brak wbudowanego profilu (plik profile.js). Użyj własnych ocen poniżej.',true);return}
+if(!P){built=null;wt=null;msg('#profile','Brak wbudowanego profilu (plik profile.js).',true);return}
 built={units:P.units,seenT:new Set(P.seenT),seenN:new Set(P.seenN),seenI:new Set(P.seenI||[]),stats:P.stats};wt=P.wt;aff=P.aff;
 msg('#profile',`Profil z moich ocen IMDb (stan na ${esc(P.date)}): ${P.stats.movies.toLocaleString('pl-PL')} filmów i ${P.stats.series.toLocaleString('pl-PL')} seriali, średnia ocena ${f1(P.wt.mu)}.`,false)}
-function rebuild(){wt=null;built=null;if(rows.length<2){msg('#csvMsg','Potrzebny jest nagłówek i co najmniej jeden wiersz.',true);return}
-const imdb=isIMDb(rows[0]);$('#mapRow').hidden=imdb;
-const entries=imdb?entriesIMDb(rows):entriesGeneric(rows,{title:+$('#cTitle').value,year:+$('#cYear').value,rating:+$('#cRate').value});
-built=buildUnits(entries);if(!built.units.length){msg('#csvMsg','Nie znaleziono ocenionych filmów ani seriali. Sprawdź wybór kolumn.',true);built=null;return}
-wt=weigh(built.units,Date.now());aff=genreAff(built.units);cands=[];$('#resBox').hidden=true;msg('#profile','Używam własnych ocen z wczytanego pliku.',false);const s=built.stats,liked=built.units.filter(u=>u.w>=0.4).length;
-msg('#csvMsg',`${imdb?'Wykryto eksport IMDb. ':''}Wczytano ${s.movies.toLocaleString('pl-PL')} filmów i ${s.series.toLocaleString('pl-PL')} seriali${s.epCount?` (w tym ${s.epCount.toLocaleString('pl-PL')} ocenionych odcinków z ${s.epSeries} seriali)`:''}. Twoja średnia ocena: ${f1(wt.mu)}, odchylenie ${f1(wt.sd)}. Wyraźnie polubionych tytułów: ${liked.toLocaleString('pl-PL')}.`,false)}
-function loadText(t){rows=parseCSV(t);if(rows.length<2){built=null;msg('#csvMsg','Nie udało się odczytać danych. Pierwszy wiersz powinien zawierać nagłówki.',true);return}
-const h=rows[0];if(!isIMDb(h)){const g=guessCols(h);fillSel('#cTitle',h,false,g.title>=0?g.title:0);fillSel('#cYear',h,true,g.year);fillSel('#cRate',h,false,g.rating>=0?g.rating:Math.min(1,h.length-1))}rebuild()}
-$('#file').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{$('#csv').value='';$('#csv').placeholder='Wczytano plik: '+f.name;loadText(String(r.result))};r.readAsText(f)});
-$('#csv').addEventListener('input',()=>loadText($('#csv').value));
-$('#backProfile').addEventListener('click',()=>{msg('#csvMsg','');$('#csv').value='';useEmbedded()});
-['#cTitle','#cYear','#cRate'].forEach(id=>$(id).addEventListener('change',rebuild));
-$('#sample').addEventListener('click',()=>{const t='Name,Year,Rating\nThe Matrix,1999,9\nPulp Fiction,1994,8\nAmelie,2001,9\nThe Godfather,1972,10\nInception,2010,8\nLa La Land,2016,4\nTwilight,2008,2\nThe Wailing,2016,7';$('#csv').value=t;loadText(t)});
 
 const card=e=>{const m=e.m,why=e.src.sort((a,b)=>b.c-a.c).slice(0,3).map(s=>esc(s.t)).join(', ');
 const orig=m.original_title&&m.original_title!==m.title?esc(m.original_title)+' · ':'',gn=(m.genre_ids||[]).map(i=>GEN[i]&&GEN[i][0]).filter(Boolean).slice(0,3).join(', ');
@@ -295,7 +263,7 @@ $('#live').textContent=$('#count').textContent}
 $('#own').addEventListener('input',render);
 
 $('#go').addEventListener('click',async()=>{
-if(!built){msg('#status','Brak profilu ocen. Wróć do wbudowanego profilu albo wgraj własny plik.',true);return}
+if(!built){msg('#status','Brak profilu ocen (plik profile.js nie wczytał się).',true);return}
 const src=selectSources(built.units,+$('#nSrc').value);if(!src.likes.length){msg('#status','Żaden tytuł nie wyróżnia się wysoką oceną. Oceń więcej filmów wyżej niż zwykle.',true);return}
 $('#go').disabled=true;$('#prog').hidden=false;$('#prog').value=0;$('#srcList').innerHTML='';msg('#status','Szukam…',false);
 try{const r=await recommend({sources:src,tmdb,onProgress:(d,n)=>{$('#prog').max=n;$('#prog').value=d;$('#status').innerHTML=`<p class="msg" role="status">Przetworzono ${d} z ${n} tytułów…</p>`}});
@@ -346,10 +314,6 @@ async function fillRatings(root){try{if(!rk('o')&&!rk('m'))return;const els=[...
   es.forEach(el=>{if(!Object.keys(r).length){el.textContent='';return}el.innerHTML=ratHtml(cb.all,cb.comb);
    if(cb.comb&&wt){const art=el.closest&&el.closest('article'),pr=art&&art.querySelector('.pred');if(pr)pr.textContent='Przewidywana moja ocena: ~'+f1(predRating(cb.comb,+pr.dataset.aff||0,wt.off||0,wt.sd))+' (z ocen kilku serwisów)'}})})}catch(e){}}
 function ratStatus(){const a=[];if(rk('o'))a.push('OMDb');if(rk('m'))a.push('MDBList');return a.length?'Aktywne źródła ocen: '+a.join(', ')+'.':'Oceny z innych serwisów są wyłączone (brak kluczy).'}
-$('#kOmdb').value=rk('o');$('#kMdb').value=rk('m');msg('#kMsg',ratStatus(),!rk('o')&&!rk('m'));
-$('#kSave').addEventListener('click',async()=>{try{localStorage.setItem('filmy.k.omdb',$('#kOmdb').value.trim());localStorage.setItem('filmy.k.mdb',$('#kMdb').value.trim())}catch(e){}
- msg('#kMsg','Sprawdzam…',false);const r=await fetchRatings('tt0111161','movie',true),got=Object.keys(r);
- msg('#kMsg',ratStatus()+(got.length?' Test (Skazani na Shawshank): '+got.map(k=>RNAME[k]+' '+f1(r[k])).join(', ')+'.':' Test nie zwrócił ocen. Sprawdź klucz (albo serwis blokuje zapytania z przeglądarki).'),!got.length)});
 
 /* ===== oznaczenia: widziałem / nie interesuje mnie ===== */
 const MK='filmy.marks.v1';let marks={};
@@ -553,11 +517,6 @@ wiki:{l:'Wikipedia: „List of films about mental disorders" (pobierane na żywo
 let userList=[];
 function listChips(){const keep=new Set(chk('pList'));chips('#pLists','pList',[...Object.entries(LISTS).map(([k,v])=>[k,v.l]),...(userList.length?[['user','Moja wczytana lista IMDb ('+userList.length+' tytułów)']]:[])]);document.querySelectorAll('input[name="pList"]').forEach(i=>{if(keep.has(i.value))i.checked=true})}
 listChips();
-$('#pFile').addEventListener('change',async ev=>{const f=ev.target.files&&ev.target.files[0];if(!f)return;
- const rows=parseCSV(await f.text()),h=(rows[0]||[]).map(x=>x.trim()),ci=h.indexOf('Const');
- if(ci<0){msg('#pFileMsg','To nie wygląda na eksport listy z IMDb (brak kolumny Const). Na stronie listy otwórz menu i wybierz Export.',true);return}
- userList=rows.slice(1).map(r=>(r[ci]||'').trim()).filter(x=>/^tt\d+$/.test(x));
- msg('#pFileMsg',`Wczytano ${userList.length} tytułów z listy. Zaznaczyłem ją w „Gotowych listach".`,false);listChips();const u=document.querySelector('input[name="pList"][value="user"]');if(u)u.checked=true});
 let wlCache=null;
 async function wikiListEntries(){if(wlCache)return wlCache;
  const r=await wj(WPAPI,{action:'parse',page:'List_of_films_about_mental_disorders',prop:'wikitext',redirects:1}),t=(r.parse&&r.parse.wikitext&&r.parse.wikitext['*'])||'',out=[];let label='lista Wikipedii';
@@ -576,7 +535,7 @@ async function wikiTitlesToImdb(entries){const res=[];
 let pTok=0;
 async function psycho(){const tok=++pTok,types=[$('#pMovie').checked&&'movie',$('#pTv').checked&&'tv'].filter(Boolean);
 if(!types.length){msg('#pMsg','Zaznacz film albo serial.',true);return}
-const N=+$('#pN').value||6,unseenOnly=radio('pMode')!=='all',sel=chk('pCond'),listSel=chk('pList'),custom=$('#pKw').value.split(',').map(x=>x.trim().toLowerCase()).filter(Boolean),
+const N=+$('#pN').value||6,unseenOnly=radio('pMode')!=='all',sel=chk('pCond'),listSel=chk('pList'),custom=[],
  selKeys=sel.filter(x=>!x.startsWith('wp:')),selWp=sel.filter(x=>x.startsWith('wp:')).map(x=>x.slice(3)),useTopics=sel.length>0||(!listSel.length&&!custom.length),keys=useTopics?(sel.length?selKeys:Object.keys(PSY)):[];
 $('#pGo').disabled=true;msg('#pMsg','Szukam…',false);$('#pOut').innerHTML='';
 try{
